@@ -1,15 +1,17 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, abort
 import sqlite3
 import csv
 import io
 import os
+import qrcode
+from qrcode.image.pil import PilImage
 from datetime import timedelta
 from flask import Response
 from datetime import date, datetime
 from functools import wraps
 
 app = Flask(__name__)
-app.secret_key = "library-management-demo"
+app.secret_key = os.environ.get("SECRET_KEY", "library-management-demo-change-before-deploy")
 DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "library.db")
 
 def db():
@@ -116,6 +118,19 @@ def init_db():
         description TEXT NOT NULL,
         created_at TEXT NOT NULL
     );
+    """)
+    conn.executescript("""
+    CREATE TABLE IF NOT EXISTS reminders(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        loan_id INTEGER NOT NULL,
+        employee_id INTEGER,
+        reminder_date TEXT NOT NULL,
+        note TEXT NOT NULL DEFAULT '',
+        FOREIGN KEY(loan_id) REFERENCES loans(id) ON DELETE CASCADE,
+        FOREIGN KEY(employee_id) REFERENCES employees(id) ON DELETE SET NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_loans_due_status ON loans(status, due_date);
+    CREATE INDEX IF NOT EXISTS idx_reservations_status_book ON reservations(status, book_id);
     """)
     conn.commit()
     conn.close()
@@ -350,7 +365,13 @@ def reports():
     popular=conn.execute("""SELECT b.title,SUM(li.quantity) total
                             FROM loan_items li JOIN books b ON b.id=li.book_id
                             GROUP BY b.id ORDER BY total DESC LIMIT 10""").fetchall()
-    conn.close(); return render_template("reports.html",category=category,monthly=monthly,popular=popular)
+    conn.close()
+    chart_category={"labels":[x["name"] for x in category],"values":[x["copies"] for x in category]}
+    months=list(reversed(monthly))
+    chart_monthly={"labels":[x["month"] for x in months],"values":[x["total"] for x in months]}
+    chart_popular={"labels":[x["title"] for x in popular],"values":[x["total"] for x in popular]}
+    return render_template("reports.html",category=category,monthly=monthly,popular=popular,
+                           chart_category=chart_category,chart_monthly=chart_monthly,chart_popular=chart_popular)
 
 # Các tính năng bổ sung (giữ nguyên các tuyến cũ)
 def log_action(conn, action, description):
@@ -475,7 +496,9 @@ def alerts():
     today=date.today().isoformat()
     until=(date.today()+timedelta(days=3)).isoformat()
     conn=db()
-    due=conn.execute("""SELECT l.*,r.name AS reader,r.phone,
+    due=conn.execute("""SELECT l.*,r.name AS reader,r.phone,r.email,
+             (SELECT COUNT(*) FROM reminders m WHERE m.loan_id=l.id) AS reminder_count,
+             (SELECT MAX(m.reminder_date) FROM reminders m WHERE m.loan_id=l.id) AS last_reminder,
              GROUP_CONCAT(b.title, ', ') AS books
              FROM loans l JOIN readers r ON r.id=l.reader_id
              JOIN loan_items li ON li.loan_id=l.id JOIN books b ON b.id=li.book_id
@@ -552,6 +575,90 @@ def activity():
           LEFT JOIN employees e ON e.id=a.employee_id ORDER BY a.id DESC LIMIT 150""").fetchall()
     conn.close();return render_template("activity.html",logs=rows)
 
+# QR dẫn đến trang thông tin đầu sách (không chứa dữ liệu độc giả)
+@app.get("/books/qr/<int:id>.png")
+@login_required
+def book_qr(id):
+    with db() as conn:
+        book = conn.execute("SELECT id FROM books WHERE id=?", (id,)).fetchone()
+    if not book:
+        abort(404)
+    target = url_for("book_detail", id=id, _external=True)
+    img = qrcode.make(target, image_factory=PilImage, box_size=8, border=3)
+    output = io.BytesIO()
+    img.save(output, format="PNG")
+    return Response(output.getvalue(), mimetype="image/png", headers={"Cache-Control":"no-store"})
+
+@app.get("/books/view/<int:id>")
+@login_required
+def book_detail(id):
+    with db() as conn:
+        book = conn.execute("""SELECT b.*, c.name AS category FROM books b
+            LEFT JOIN categories c ON c.id=b.category_id WHERE b.id=?""", (id,)).fetchone()
+        if not book:
+            abort(404)
+        waiting = conn.execute("""SELECT COUNT(*) FROM reservations WHERE book_id=? AND status='Chờ xử lý'""", (id,)).fetchone()[0]
+    return render_template("book_detail.html", book=book, waiting=waiting)
+
+@app.get("/scan")
+@login_required
+def scan_books():
+    return render_template("scan.html")
+
+@app.post("/scan/find")
+@login_required
+def scan_find():
+    code = request.form.get("code", "").strip()
+    # Dùng mã sách khi quét bằng máy quét USB/nhập tay; QR có thể mở URL trực tiếp.
+    with db() as conn:
+        book = conn.execute("SELECT id FROM books WHERE code=? COLLATE NOCASE", (code,)).fetchone()
+    if not book:
+        flash("Không tìm thấy mã sách.", "error")
+        return redirect(url_for("scan_books"))
+    return redirect(url_for("book_detail", id=book["id"]))
+
+@app.post("/reminders/<int:id>/mark")
+@login_required
+def mark_reminder(id):
+    note = request.form.get("note", "").strip()[:300]
+    conn = db()
+    loan = conn.execute("SELECT id,code,status FROM loans WHERE id=?", (id,)).fetchone()
+    if not loan or loan["status"] != "Đang mượn":
+        conn.close()
+        flash("Chỉ ghi nhận nhắc hạn với phiếu đang mượn.", "error")
+    else:
+        conn.execute("INSERT INTO reminders(loan_id,employee_id,reminder_date,note) VALUES(?,?,?,?)",
+                     (id,session.get("employee_id"),datetime.now().isoformat(timespec="seconds"),note))
+        log_action(conn,"Nhắc hạn",f"Đã ghi nhận nhắc hạn phiếu {loan['code']}")
+        conn.commit()
+        conn.close()
+        flash("Đã lưu lịch sử nhắc hạn. Chức năng này không tự gửi email/SMS.", "success")
+    return redirect(url_for("alerts"))
+
+@app.get("/reminders")
+@login_required
+def reminder_history():
+    with db() as conn:
+        rows = conn.execute("""SELECT m.*,l.code AS loan_code,r.name AS reader,e.name AS employee
+           FROM reminders m JOIN loans l ON l.id=m.loan_id JOIN readers r ON r.id=l.reader_id
+           LEFT JOIN employees e ON e.id=m.employee_id ORDER BY m.id DESC LIMIT 200""").fetchall()
+    return render_template("reminders.html", reminders=rows)
+
+@app.post("/reservations/<int:id>/complete")
+@login_required
+def complete_reservation(id):
+    conn=db()
+    row=conn.execute("SELECT * FROM reservations WHERE id=?", (id,)).fetchone()
+    if not row or row["status"] != "Đã thông báo":
+        flash("Chỉ hoàn tất yêu cầu đã thông báo.","error")
+    else:
+        conn.execute("UPDATE reservations SET status='Hoàn tất' WHERE id=?", (id,))
+        log_action(conn,"Đặt trước",f"Hoàn tất yêu cầu #{id}")
+        conn.commit()
+        flash("Đã hoàn tất yêu cầu. Nếu độc giả mượn sách, hãy tạo phiếu mượn riêng.","success")
+    conn.close()
+    return redirect(url_for("reservations"))
+
 if __name__ == "__main__":
     init_db()
-    app.run(host="0.0.0.0", port=5055, debug=True)
+    app.run(host="0.0.0.0", port=5001, debug=True)
