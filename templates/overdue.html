@@ -1,1 +1,47 @@
-{% extends 'base.html' %}{% block content %}<h1>⏰ Sách quá hạn</h1><section class="panel"><table><tr><th>Mã phiếu</th><th>Độc giả</th><th>Sách</th><th>Hạn trả</th><th>Quá hạn (ngày)</th></tr>{% for l in loans %}<tr><td>{{l.code}}</td><td>{{l.reader}}</td><td>{{l.books}}</td><td>{{l.due_date}}</td><td>{{l.days}}</td></tr>{% else %}<tr><td colspan="5">Không có phiếu quá hạn</td></tr>{% endfor %}</table></section>{% endblock %}
+{% extends 'base.html' %}
+{% block content %}
+<header class="page-header">
+  <div>
+    <span class="page-kicker">13 // DELINQUENT CIRCULATION TRACKING</span>
+    <h1>Hồ sơ phiếu mượn quá hạn</h1>
+  </div>
+  <div class="actions">
+    <a class="btn secondary" href="{{ url_for('alerts') }}">Mở trung tâm cảnh báo →</a>
+  </div>
+</header>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Danh sách ấn phẩm chưa hoàn trả đúng hạn</h2>
+    <span class="section-index">{{ loans|length }} OVERDUE CASES</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 145px;">Mã phiếu</th>
+        <th>Độc giả</th>
+        <th>Ấn phẩm đang giữ</th>
+        <th style="width: 120px;">Hạn trả gốc</th>
+        <th style="width: 150px;">Số ngày trễ hạn</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for l in loans %}
+      <tr>
+        <td><span class="code-cell">{{ l.code }}</span></td>
+        <td style="font-weight: 600;">{{ l.reader }}</td>
+        <td>{{ l.books }}</td>
+        <td class="mono">{{ l.due_date }}</td>
+        <td>
+          <span class="tag bad">+{{ l.days }} ngày</span>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="5" class="empty-state">Hiện không có phiếu mượn nào bị quá hạn.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

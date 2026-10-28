@@ -1,1 +1,56 @@
-{% extends 'base.html' %}{% block content %}<h1>📜 Tra cứu lịch sử mượn</h1><form class="panel filters" method="get"><input name="q" value="{{q}}" placeholder="Mã phiếu, mã hoặc tên độc giả"><button>Tìm</button></form><section class="panel"><table><tr><th>Mã phiếu</th><th>Độc giả</th><th>Sách</th><th>Ngày mượn</th><th>Hạn trả</th><th>Ngày trả</th><th>Trạng thái</th></tr>{% for l in loans %}<tr><td>{{l.code}}</td><td>{{l.reader}}</td><td>{{l.books}}</td><td>{{l.borrow_date}}</td><td>{{l.due_date}}</td><td>{{l.return_date or '—'}}</td><td>{{l.status}}</td></tr>{% else %}<tr><td colspan="7">Chưa có dữ liệu</td></tr>{% endfor %}</table></section>{% endblock %}
+{% extends 'base.html' %}
+{% block content %}
+<header class="page-header">
+  <div>
+    <span class="page-kicker">12 // MASTER CIRCULATION ARCHIVE</span>
+    <h1>Tra cứu lịch sử mượn trả</h1>
+  </div>
+  <span class="tag neutral">{{ loans|length }} BẢN GHI</span>
+</header>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Sổ cái lưu thông</h2>
+    <span class="section-index">HISTORICAL LEDGER</span>
+  </div>
+  <form class="filters" method="get" style="margin-bottom: 18px;">
+    <input name="q" value="{{ q }}" placeholder="Nhập mã phiếu (PM...), mã độc giả (DG...) hoặc họ tên độc giả">
+    <button>Truy vấn sổ cái</button>
+    {% if q %}
+    <a class="btn secondary" href="{{ url_for('history') }}">Xóa bộ lọc</a>
+    {% endif %}
+  </form>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 145px;">Mã phiếu</th>
+        <th>Độc giả</th>
+        <th>Ấn phẩm &amp; Số lượng</th>
+        <th style="width: 110px;">Ngày mượn</th>
+        <th style="width: 110px;">Hạn trả</th>
+        <th style="width: 110px;">Ngày trả</th>
+        <th style="width: 115px;">Trạng thái</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for l in loans %}
+      <tr>
+        <td><span class="code-cell">{{ l.code }}</span></td>
+        <td style="font-weight: 600;">{{ l.reader }}</td>
+        <td>{{ l.books }}</td>
+        <td class="mono">{{ l.borrow_date }}</td>
+        <td class="mono">{{ l.due_date }}</td>
+        <td class="mono">{{ l.return_date or '—' }}</td>
+        <td>
+          <span class="tag {% if l.status == 'Đã trả' %}neutral{% endif %}">{{ l.status }}</span>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="7" class="empty-state">Không tìm thấy bản ghi lưu thông phù hợp.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

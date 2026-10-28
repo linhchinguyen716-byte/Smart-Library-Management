@@ -1,1 +1,93 @@
-{% extends 'base.html' %}{% block content %}<h1>📊 Tổng quan thư viện</h1><div class="stats">{% for k,label in [('books','Đầu sách'),('copies','Tổng bản sách'),('readers','Độc giả'),('employees','Nhân viên'),('active_loans','Phiếu đang mượn'),('overdue','Phiếu quá hạn')] %}<div class="stat"><strong>{{stats[k]}}</strong><span>{{label}}</span></div>{% endfor %}</div><section class="panel"><h2>Truy cập nhanh</h2><p><a class="btn" href="{{url_for('alerts')}}">🔔 Xem cảnh báo</a> <a class="btn" href="{{url_for('scan_books')}}">▣ Quét mã sách</a> <a class="btn" href="{{url_for('catalog')}}">🔎 Tra cứu sách</a> <a class="btn" href="{{url_for('reservations')}}">📌 Đặt trước</a></p></section><section class="panel"><h2>Sách được mượn nhiều</h2><table><tr><th>Sách</th><th>Lượt</th></tr>{% for b in popular %}<tr><td>{{b.title}}</td><td>{{b.borrowed}}</td></tr>{% else %}<tr><td colspan="2">Chưa có lượt mượn</td></tr>{% endfor %}</table></section>{% endblock %}
+{% extends 'base.html' %}
+{% block content %}
+<header class="page-header">
+  <div>
+    <span class="page-kicker">01 // SYSTEM OVERVIEW &amp; TELEMETRY</span>
+    <h1>Tổng quan thư viện</h1>
+  </div>
+  <div class="actions">
+    <a class="btn secondary" href="{{ url_for('catalog') }}">Tra cứu danh mục</a>
+    <a class="btn" href="{{ url_for('loans') }}">Lập phiếu mượn →</a>
+  </div>
+</header>
+
+<div class="stats">
+  {% for idx, k, label in [
+    ('01', 'books', 'Đầu sách lưu trữ'),
+    ('02', 'copies', 'Tổng bản ấn phẩm'),
+    ('03', 'readers', 'Hồ sơ độc giả'),
+    ('04', 'employees', 'Nhân sự vận hành'),
+    ('05', 'active_loans', 'Phiếu đang lưu hành'),
+    ('06', 'overdue', 'Phiếu quá hạn trả')
+  ] %}
+  <div class="stat {% if k == 'overdue' and stats[k] > 0 %}stat-alert{% endif %}">
+    <div class="stat-top">
+      <span class="stat-idx">{{ idx }} / 06</span>
+    </div>
+    <div>
+      <strong>{{ stats[k] }}</strong>
+      <span>{{ label }}</span>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="split-layout">
+  <section class="panel sticky-col">
+    <div class="panel-header">
+      <h2>Điều hướng nghiệp vụ</h2>
+      <span class="section-index">QUICK OPS</span>
+    </div>
+    <p class="muted">Truy cập trực tiếp các phân hệ kiểm soát lưu thông, quét mã định danh ấn phẩm và xử lý cảnh báo hạn trả.</p>
+    <div class="form-stack" style="margin-top: 18px;">
+      <a class="btn" href="{{ url_for('alerts') }}" style="justify-content: space-between;">
+        <span>Trung tâm cảnh báo hạn trả</span>
+        <span class="mono">→</span>
+      </a>
+      <a class="btn secondary" href="{{ url_for('scan_books') }}" style="justify-content: space-between;">
+        <span>Quét / Tìm mã sách (QR &amp; Barcode)</span>
+        <span class="mono">03</span>
+      </a>
+      <a class="btn secondary" href="{{ url_for('catalog') }}" style="justify-content: space-between;">
+        <span>Tra cứu danh mục nâng cao</span>
+        <span class="mono">02</span>
+      </a>
+      <a class="btn secondary" href="{{ url_for('reservations') }}" style="justify-content: space-between;">
+        <span>Quản lý hàng chờ đặt trước</span>
+        <span class="mono">09</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-header">
+      <h2>Ấn phẩm có tần suất mượn cao nhất</h2>
+      <span class="section-index">TOP 05 CIRCULATION</span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 60px;">Hạng</th>
+          <th>Nhan đề ấn phẩm</th>
+          <th style="width: 140px; text-align: right;">Tổng lượt mượn</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in popular %}
+        <tr>
+          <td class="mono" style="color: var(--ink-muted);">{{ "%02d"|format(loop.index) }}</td>
+          <td style="font-weight: 600;">{{ b.title }}</td>
+          <td class="num-cell" style="text-align: right;">
+            <span class="tag neutral">{{ b.borrowed }} bản</span>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="3" class="empty-state">Chưa ghi nhận lượt mượn nào trong hệ thống.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+{% endblock %}

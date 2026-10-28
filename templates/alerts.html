@@ -1,1 +1,96 @@
-{% extends 'base.html' %}{% block content %}<h1>🔔 Trung tâm cảnh báo</h1><p class="muted">Nhắc hạn bằng email sẽ mở ứng dụng email để bạn tự gửi. Nút ghi nhận chỉ lưu lịch sử, không tự gửi email hoặc SMS.</p><a class="btn" href="{{url_for('reminder_history')}}">Xem lịch sử nhắc hạn</a><section class="panel"><h2>Phiếu quá hạn hoặc hạn trả trong 3 ngày tới</h2><table><tr><th>Độc giả</th><th>Liên hệ</th><th>Sách</th><th>Hạn trả</th><th>Cảnh báo</th><th>Nhắc hạn</th></tr>{% for l in due %}<tr><td>{{l.reader}}</td><td>{{l.phone}}</td><td>{{l.books}}</td><td>{{l.due_date}}</td><td><span class="tag {% if l.due_date < today %}bad{% endif %}">{{'Quá hạn' if l.due_date < today else 'Sắp đến hạn'}}</span></td><td><div class="actions"><form method="post" action="{{url_for('mark_reminder',id=l.id)}}"><input type="hidden" name="note" value="Đã nhắc độc giả qua kênh bên ngoài"><button class="secondary">Ghi nhận đã nhắc</button></form>{% if l.email %}<a class="btn" href="mailto:{{l.email}}?subject={{('Nhac han tra sach '+l.code)|urlencode}}&body={{('Xin chao, phieu '+l.code+' co han tra ngay '+l.due_date+'. Vui long lien he thu vien.')|urlencode}}">Soạn email</a>{% endif %}</div><small class="muted">{{l.reminder_count}} lần nhắc{% if l.last_reminder %} · gần nhất {{l.last_reminder}}{% endif %}</small></td></tr>{% else %}<tr><td colspan="6">Không có phiếu cần cảnh báo.</td></tr>{% endfor %}</table></section><section class="panel"><h2>Đặt trước đã có sách sẵn</h2><table><tr><th>Độc giả</th><th>Sách</th><th>Số sách sẵn</th></tr>{% for r in waiting %}<tr><td>{{r.reader}}</td><td>{{r.title}}</td><td>{{r.available}}</td></tr>{% else %}<tr><td colspan="3">Không có yêu cầu cần xử lý.</td></tr>{% endfor %}</table><a class="btn" href="{{url_for('reservations')}}">Xử lý đặt trước</a></section>{% endblock %}
+{% extends 'base.html' %}
+{% block content %}
+<header class="page-header">
+  <div>
+    <span class="page-kicker">10 // EARLY WARNING &amp; DISPATCH CENTER</span>
+    <h1>Trung tâm cảnh báo lưu thông</h1>
+  </div>
+  <div class="actions">
+    <a class="btn secondary" href="{{ url_for('reminder_history') }}">Nhật ký nhắc hạn →</a>
+  </div>
+</header>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>01 // Phiếu quá hạn hoặc sắp đến hạn (trong 3 ngày tới)</h2>
+    <span class="section-index">{{ due|length }} ALERTS</span>
+  </div>
+  <p class="muted" style="margin-bottom: 16px;">Tác vụ "Soạn email" mở trình thư điện tử mặc định trên máy trạm. Nút "Ghi nhận đã nhắc" cập nhật nhật ký đối soát nội bộ.</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Độc giả</th>
+        <th style="width: 120px;">Điện thoại</th>
+        <th>Ấn phẩm đang mượn</th>
+        <th style="width: 110px;">Hạn trả</th>
+        <th style="width: 120px;">Mức cảnh báo</th>
+        <th style="width: 260px;">Điều phối nhắc hạn</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for l in due %}
+      <tr>
+        <td style="font-weight: 600;">{{ l.reader }}</td>
+        <td class="mono">{{ l.phone or '—' }}</td>
+        <td>{{ l.books }}</td>
+        <td class="mono">{{ l.due_date }}</td>
+        <td>
+          <span class="tag {% if l.due_date < today %}bad{% else %}warn{% endif %}">
+            {{ 'Quá hạn' if l.due_date < today else 'Sắp đến hạn' }}
+          </span>
+        </td>
+        <td>
+          <div class="actions">
+            <form method="post" action="{{ url_for('mark_reminder', id=l.id) }}">
+              <input type="hidden" name="note" value="Đã nhắc độc giả qua kênh bên ngoài">
+              <button class="secondary btn-sm">Ghi nhận đã nhắc</button>
+            </form>
+            {% if l.email %}
+            <a class="btn btn-sm" href="mailto:{{ l.email }}?subject={{ ('Nhac han tra sach ' + l.code)|urlencode }}&body={{ ('Xin chao, phieu ' + l.code + ' co han tra ngay ' + l.due_date + '. Vui long lien he thu vien.')|urlencode }}">Soạn email</a>
+            {% endif %}
+          </div>
+          <div class="mono" style="color: var(--ink-muted); font-size: 11px; margin-top: 5px;">
+            {{ l.reminder_count }} lần nhắc{% if l.last_reminder %} · gần nhất {{ l.last_reminder }}{% endif %}
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="6" class="empty-state">Không có phiếu mượn nào quá hạn hoặc sắp đến hạn trong 3 ngày tới.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>02 // Yêu cầu đặt trước đã có sách khả dụng trong kho</h2>
+    <div class="actions">
+      <a class="btn secondary btn-sm" href="{{ url_for('reservations') }}">Điều phối đặt trước →</a>
+    </div>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Độc giả chờ</th>
+        <th>Nhan đề ấn phẩm</th>
+        <th style="width: 150px;">Tồn kho sẵn có</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in waiting %}
+      <tr>
+        <td style="font-weight: 600;">{{ r.reader }}</td>
+        <td>{{ r.title }}</td>
+        <td><span class="tag">{{ r.available }} bản sẵn sàng</span></td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="3" class="empty-state">Không có yêu cầu đặt trước nào đang chờ thông báo.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
