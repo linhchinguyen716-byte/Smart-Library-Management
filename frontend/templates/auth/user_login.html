@@ -1,0 +1,21 @@
+{% extends 'user_base.html' %}
+{% block content %}
+<section class="reader-auth panel">
+  <span class="page-kicker">CỔNG ĐỘC GIẢ</span>
+  <h1>Đăng nhập độc giả</h1>
+  <p>Tra cứu sách, đặt trước và xem lịch sử mượn của bạn.</p>
+  <form method="post" class="form-stack">
+    <label>
+      Tài khoản
+      <input name="username" required autocomplete="username">
+    </label>
+    <label>
+      Mật khẩu
+      <input type="password" name="password" required autocomplete="current-password">
+    </label>
+    <button>Đăng nhập</button>
+  </form>
+  <p>Chưa có tài khoản? <a href="{{ url_for('user_register') }}">Đăng ký độc giả</a></p>
+  <p><a href="{{ url_for('admin_login') }}">Đăng nhập nhân viên / Admin</a></p>
+</section>
+{% endblock %}
