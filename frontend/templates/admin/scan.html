@@ -2,39 +2,37 @@
 {% block content %}
 <header class="page-header">
   <div>
-    <span class="page-kicker">03 // OPTICAL &amp; BARCODE IDENTIFICATION</span>
+    <div class="page-breadcrumb">TRA CỨU / QUÉT MÃ</div>
     <h1>Quét và tìm mã sách</h1>
   </div>
-  <a class="btn secondary" href="{{ url_for('books') }}">Danh mục đầu sách →</a>
+  <a class="btn secondary" href="{{ url_for('books') }}">Quản lý đầu sách →</a>
 </header>
 
 <div class="split-layout-wide">
   <section class="panel sticky-col">
     <div class="panel-header">
-      <h2>Định danh bằng mã sách</h2>
-      <span class="section-index">MANUAL / USB SCANNER</span>
+      <h2>Nhập mã sách thủ công / Máy quét USB</h2>
     </div>
-    <p class="muted">Sử dụng đầu đọc mã vạch USB (chế độ bàn phím) hoặc nhập trực tiếp mã định danh ấn phẩm để mở hồ sơ chi tiết.</p>
-    <form action="{{ url_for('scan_find') }}" method="post" class="form-stack" style="margin-top: 16px;">
+    <p class="muted">Nhập mã định danh hoặc dùng đầu đọc mã vạch USB để mở nhanh trang chi tiết ấn phẩm:</p>
+    <form action="{{ url_for('scan_find') }}" method="post" class="form-stack" style="margin-top: 14px;">
       <label>
-        Mã định danh ấn phẩm
+        Mã định danh sách
         <input autofocus name="code" class="mono" placeholder="Ví dụ: S001" required>
       </label>
-      <button>Truy xuất hồ sơ sách →</button>
+      <button>Tìm sách ngay</button>
     </form>
   </section>
 
   <section class="panel">
     <div class="panel-header">
-      <h2>Quét quang học qua Camera (BarcodeDetector API)</h2>
-      <span class="section-index">OPTICAL QR</span>
+      <h2>Quét mã QR qua Camera</h2>
     </div>
-    <p id="status" class="muted">Yêu cầu cấp quyền truy cập camera. Hoạt động trực tiếp trên localhost; nếu truy cập qua mạng LAN cần giao thức HTTPS.</p>
-    <div class="actions" style="margin: 14px 0;">
-      <button id="go" type="button">Kích hoạt camera</button>
-      <button id="stop" class="secondary" type="button">Ngắt camera</button>
+    <p id="status" class="muted">Yêu cầu quyền truy cập camera trên trình duyệt hỗ trợ BarcodeDetector. Kết nối localhost hoặc mạng nội bộ qua giao thức HTTPS.</p>
+    <div class="actions" style="margin: 12px 0;">
+      <button id="go" type="button">Bật camera</button>
+      <button id="stop" class="secondary" type="button">Tắt camera</button>
     </div>
-    <video id="video" autoplay playsinline muted style="width:100%;max-width:480px;border-radius:6px;border:1px solid var(--border-strong);background:#121312;margin-top:8px;display:block;"></video>
+    <video id="video" autoplay playsinline muted style="width:100%;max-width:440px;border-radius:4px;border:1px solid var(--border-color);background:#0F172A;margin-top:8px;display:block;"></video>
   </section>
 </div>
 
@@ -42,7 +40,7 @@
 const video=document.getElementById('video'),statusEl=document.getElementById('status');let stream=null,active=false;
 async function stop(){active=false;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}video.srcObject=null;}
 document.getElementById('stop').onclick=stop;
-document.getElementById('go').onclick=async()=>{if(!('BarcodeDetector' in window)){statusEl.textContent='Trình duyệt không hỗ trợ BarcodeDetector. Bạn có thể dùng camera điện thoại để quét nhãn QR hoặc nhập mã.';return;}try{let detector=new BarcodeDetector({formats:['qr_code']});stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});video.srcObject=stream;active=true;statusEl.textContent='Đang tìm mã QR...';while(active){if(video.readyState>=2){let codes=await detector.detect(video);if(codes.length){const raw=codes[0].rawValue;let u;try{u=new URL(raw,location.origin)}catch(e){}if(u&&u.origin===location.origin&&/^\/books\/view\/\d+$/.test(u.pathname)){await stop();location.href=u.href;return;}statusEl.textContent='QR không thuộc website này.';}}await new Promise(r=>setTimeout(r,250));}}catch(e){statusEl.textContent='Không thể mở camera: '+e.message;await stop();}};
+document.getElementById('go').onclick=async()=>{if(!('BarcodeDetector' in window)){statusEl.textContent='Trình duyệt không hỗ trợ BarcodeDetector. Bạn có thể dùng camera điện thoại quét nhãn QR hoặc nhập mã ở ô bên trái.';return;}try{let detector=new BarcodeDetector({formats:['qr_code']});stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});video.srcObject=stream;active=true;statusEl.textContent='Đang tìm mã QR...';while(active){if(video.readyState>=2){let codes=await detector.detect(video);if(codes.length){const raw=codes[0].rawValue;let u;try{u=new URL(raw,location.origin)}catch(e){}if(u&&u.origin===location.origin&&/^\/books\/view\/\d+$/.test(u.pathname)){await stop();location.href=u.href;return;}statusEl.textContent='Mã QR không thuộc hệ thống thư viện này.';}}await new Promise(r=>setTimeout(r,250));}}catch(e){statusEl.textContent='Không thể mở camera: '+e.message;await stop();}};
 window.addEventListener('pagehide',stop);
 </script>
 {% endblock %}

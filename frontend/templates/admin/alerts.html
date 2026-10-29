@@ -2,7 +2,7 @@
 {% block content %}
 <header class="page-header">
   <div>
-    <span class="page-kicker">10 // EARLY WARNING &amp; DISPATCH CENTER</span>
+    <span class="page-kicker">Cảnh báo &amp; Điều phối</span>
     <h1>Trung tâm cảnh báo lưu thông</h1>
   </div>
   <div class="actions">
@@ -12,85 +12,89 @@
 
 <section class="panel">
   <div class="panel-header">
-    <h2>01 // Phiếu quá hạn hoặc sắp đến hạn (trong 3 ngày tới)</h2>
-    <span class="section-index">{{ due|length }} ALERTS</span>
+    <h2>Phiếu mượn quá hạn hoặc sắp đến hạn (trong 3 ngày tới)</h2>
+    <span class="tag bad">{{ due|length }} cảnh báo</span>
   </div>
-  <p class="muted" style="margin-bottom: 16px;">Tác vụ "Soạn email" mở trình thư điện tử mặc định trên máy trạm. Nút "Ghi nhận đã nhắc" cập nhật nhật ký đối soát nội bộ.</p>
-  <table>
-    <thead>
-      <tr>
-        <th>Độc giả</th>
-        <th style="width: 120px;">Điện thoại</th>
-        <th>Ấn phẩm đang mượn</th>
-        <th style="width: 110px;">Hạn trả</th>
-        <th style="width: 120px;">Mức cảnh báo</th>
-        <th style="width: 260px;">Điều phối nhắc hạn</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for l in due %}
-      <tr>
-        <td style="font-weight: 600;">{{ l.reader }}</td>
-        <td class="mono">{{ l.phone or '—' }}</td>
-        <td>{{ l.books }}</td>
-        <td class="mono">{{ l.due_date }}</td>
-        <td>
-          <span class="tag {% if l.due_date < today %}bad{% else %}warn{% endif %}">
-            {{ 'Quá hạn' if l.due_date < today else 'Sắp đến hạn' }}
-          </span>
-        </td>
-        <td>
-          <div class="actions">
-            <form method="post" action="{{ url_for('mark_reminder', id=l.id) }}">
-              <input type="hidden" name="note" value="Đã nhắc độc giả qua kênh bên ngoài">
-              <button class="secondary btn-sm">Ghi nhận đã nhắc</button>
-            </form>
-            {% if l.email %}
-            <a class="btn btn-sm" href="mailto:{{ l.email }}?subject={{ ('Nhac han tra sach ' + l.code)|urlencode }}&body={{ ('Xin chao, phieu ' + l.code + ' co han tra ngay ' + l.due_date + '. Vui long lien he thu vien.')|urlencode }}">Soạn email</a>
-            {% endif %}
-          </div>
-          <div class="mono" style="color: var(--ink-muted); font-size: 11px; margin-top: 5px;">
-            {{ l.reminder_count }} lần nhắc{% if l.last_reminder %} · gần nhất {{ l.last_reminder }}{% endif %}
-          </div>
-        </td>
-      </tr>
-      {% else %}
-      <tr>
-        <td colspan="6" class="empty-state">Không có phiếu mượn nào quá hạn hoặc sắp đến hạn trong 3 ngày tới.</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <p class="muted" style="margin-bottom: 16px;">Tác vụ "Soạn email" sẽ mở ứng dụng email mặc định. Nút "Ghi nhận đã nhắc" sẽ lưu vết vào nhật ký để theo dõi tiến độ.</p>
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Độc giả</th>
+          <th style="width: 120px;">Điện thoại</th>
+          <th>Ấn phẩm đang mượn</th>
+          <th style="width: 110px;">Hạn trả</th>
+          <th style="width: 120px;">Mức cảnh báo</th>
+          <th style="width: 250px;">Điều phối nhắc hạn</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in due %}
+        <tr>
+          <td style="font-weight: 600;">{{ l.reader }}</td>
+          <td class="mono">{{ l.phone or '—' }}</td>
+          <td>{{ l.books }}</td>
+          <td class="mono">{{ l.due_date }}</td>
+          <td>
+            <span class="tag {% if l.due_date < today %}bad{% else %}warn{% endif %}">
+              {{ 'Quá hạn' if l.due_date < today else 'Sắp đến hạn' }}
+            </span>
+          </td>
+          <td>
+            <div class="actions">
+              <form method="post" action="{{ url_for('mark_reminder', id=l.id) }}">
+                <input type="hidden" name="note" value="Đã nhắc độc giả qua kênh liên lạc">
+                <button type="submit" class="btn secondary btn-sm">Ghi nhận đã nhắc</button>
+              </form>
+              {% if l.email %}
+              <a class="btn primary btn-sm" href="mailto:{{ l.email }}?subject={{ ('Nhac han tra sach ' + l.code)|urlencode }}&body={{ ('Xin chao, phieu ' + l.code + ' co han tra ngay ' + l.due_date + '. Vui long lien he thu vien.')|urlencode }}">Gửi email</a>
+              {% endif %}
+            </div>
+            <div class="mono" style="color: var(--ink-muted); font-size: 11px; margin-top: 5px;">
+              {{ l.reminder_count }} lần nhắc{% if l.last_reminder %} · gần nhất {{ l.last_reminder }}{% endif %}
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="6" class="empty-state">Không có phiếu mượn nào quá hạn hoặc sắp đến hạn trong 3 ngày tới.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </section>
 
 <section class="panel">
   <div class="panel-header">
-    <h2>02 // Yêu cầu đặt trước đã có sách khả dụng trong kho</h2>
+    <h2>Yêu cầu đặt trước đã có sách khả dụng trong kho</h2>
     <div class="actions">
       <a class="btn secondary btn-sm" href="{{ url_for('reservations') }}">Điều phối đặt trước →</a>
     </div>
   </div>
-  <table>
-    <thead>
-      <tr>
-        <th>Độc giả chờ</th>
-        <th>Nhan đề ấn phẩm</th>
-        <th style="width: 150px;">Tồn kho sẵn có</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for r in waiting %}
-      <tr>
-        <td style="font-weight: 600;">{{ r.reader }}</td>
-        <td>{{ r.title }}</td>
-        <td><span class="tag">{{ r.available }} bản sẵn sàng</span></td>
-      </tr>
-      {% else %}
-      <tr>
-        <td colspan="3" class="empty-state">Không có yêu cầu đặt trước nào đang chờ thông báo.</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Độc giả chờ</th>
+          <th>Nhan đề ấn phẩm</th>
+          <th style="width: 160px;">Tồn kho sẵn có</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in waiting %}
+        <tr>
+          <td style="font-weight: 600;">{{ r.reader }}</td>
+          <td>{{ r.title }}</td>
+          <td><span class="tag good">{{ r.available }} bản sẵn sàng</span></td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="3" class="empty-state">Không có yêu cầu đặt trước nào đang chờ thông báo.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </section>
 {% endblock %}

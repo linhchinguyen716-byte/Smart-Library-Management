@@ -2,17 +2,16 @@
 {% block content %}
 <header class="page-header">
   <div>
-    <span class="page-kicker">05 // TAXONOMY &amp; CLASSIFICATION</span>
-    <h1>Phân loại chuyên mục</h1>
+    <span class="page-kicker">Phân loại &amp; Danh mục</span>
+    <h1>Quản lý thể loại sách</h1>
   </div>
-  <span class="tag neutral">{{ categories|length }} CHUYÊN MỤC</span>
+  <span class="tag neutral">{{ categories|length }} thể loại</span>
 </header>
 
 <div class="split-layout">
   <form method="post" class="panel sticky-col form-stack">
     <div class="panel-header">
       <h2>Tạo thể loại mới</h2>
-      <span class="section-index">ADD TAXONOMY</span>
     </div>
     <label>
       Tên thể loại
@@ -22,42 +21,43 @@
       Mô tả phạm vi lưu trữ
       <input name="description" placeholder="Ghi chú tóm tắt về nhóm ấn phẩm">
     </label>
-    <button style="margin-top: 4px;">Thêm chuyên mục</button>
+    <button type="submit" class="btn primary" style="margin-top: 6px;">Thêm thể loại</button>
   </form>
 
   <section class="panel">
     <div class="panel-header">
-      <h2>Danh sách chuyên mục hiện hành</h2>
-      <span class="section-index">REGISTRY</span>
+      <h2>Danh sách thể loại hiện hành</h2>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <th style="width: 60px;">STT</th>
-          <th style="width: 220px;">Tên chuyên mục</th>
-          <th>Mô tả chi tiết</th>
-          <th style="width: 110px;">Thao tác</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for c in categories %}
-        <tr>
-          <td class="mono" style="color: var(--ink-muted);">{{ "%02d"|format(loop.index) }}</td>
-          <td style="font-weight: 600;">{{ c.name }}</td>
-          <td class="muted">{{ c.description or '—' }}</td>
-          <td>
-            <form method="post" action="{{ url_for('delete_category', id=c.id) }}" onsubmit="return confirm('Xóa thể loại?')">
-              <button class="danger btn-sm">Xóa</button>
-            </form>
-          </td>
-        </tr>
-        {% else %}
-        <tr>
-          <td colspan="4" class="empty-state">Chưa có thể loại nào được khởi tạo.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 60px;">STT</th>
+            <th style="width: 220px;">Tên thể loại</th>
+            <th>Mô tả chi tiết</th>
+            <th style="width: 110px;">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in categories %}
+          <tr>
+            <td class="mono" style="color: var(--ink-muted);">{{ "%02d"|format(loop.index) }}</td>
+            <td style="font-weight: 600;">{{ c.name }}</td>
+            <td class="muted">{{ c.description or '—' }}</td>
+            <td>
+              <form method="post" action="{{ url_for('delete_category', id=c.id) }}" onsubmit="return confirm('Bạn có chắc chắn muốn xóa thể loại này?')">
+                <button type="submit" class="btn danger btn-sm">Xóa</button>
+              </form>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="4" class="empty-state">Chưa có thể loại nào được khởi tạo.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </section>
 </div>
 {% endblock %}

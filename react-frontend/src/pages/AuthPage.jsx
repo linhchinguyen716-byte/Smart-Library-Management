@@ -37,30 +37,30 @@ export function Auth({ onLogin, tell, notice }) {
     <div className="auth-page">
       <div className="auth-top">
         <Library size={28} /> <strong>SMART LIBRARY</strong>
-        <span> / LIBRARY MANAGEMENT SYSTEM</span>
+        <span> / QUẢN LÝ THƯ VIỆN</span>
       </div>
       <div className="auth-card">
         <div className="auth-story">
           <div>
-            <div className="eyebrow orange">NỀN TẢNG QUẢN LÝ THƯ VIỆN</div>
+            <div className="eyebrow orange">CỔNG THÔNG TIN THƯ VIỆN</div>
             <h1>
-              Tri thức trong tầm tay.
+              Hệ thống Quản lý
               <br />
-              Quản lý trong một nơi.
+              Thư viện Thông minh
             </h1>
             <p>
-              Hệ thống số hóa công tác thư viện, kết nối người quản lý và độc giả qua một trải nghiệm thống nhất.
+              Tra cứu ấn phẩm, quản lý mượn trả và đối soát lưu thông tập trung dành cho cán bộ quản lý và độc giả.
             </p>
           </div>
           <div className="story-footer">
-            <span>SMART LIBRARY / 2026</span>
+            <span>SMART LIBRARY</span>
             <span>FLASK + REACT + SQLITE</span>
           </div>
         </div>
         <div className="auth-form">
-          <div className="eyebrow">{register ? 'ĐĂNG KÝ TÀI KHOẢN' : 'XÁC THỰC / TRUY CẬP HỆ THỐNG'}</div>
-          <h2>{register ? 'Tạo tài khoản độc giả' : 'Chào mừng trở lại'}</h2>
-          <p>Đăng nhập để tiếp tục sử dụng hệ thống thư viện.</p>
+          <div className="eyebrow">{register ? 'ĐĂNG KÝ ĐỘC GIẢ' : 'ĐĂNG NHẬP HỆ THỐNG'}</div>
+          <h2>{register ? 'Tạo tài khoản độc giả' : 'Truy cập tài khoản'}</h2>
+          <p>Nhập thông tin xác thực để bắt đầu phiên làm việc.</p>
           {!register && (
             <div className="auth-tabs">
               <button
@@ -98,17 +98,23 @@ export function Auth({ onLogin, tell, notice }) {
               {loading ? 'Đang xử lý…' : register ? 'Đăng ký tài khoản' : 'Đăng nhập'} <ArrowRight size={17} />
             </button>
           </form>
-          <button
-            className="text-link"
-            onClick={() => {
-              setRegister(!register);
-              setKind('reader');
-              setError('');
-              setForm({});
-            }}
-          >
-            {register ? 'Đã có tài khoản? Đăng nhập' : 'Bạn là độc giả mới? Đăng ký tài khoản'}
-          </button>
+          <div className="auth-switch">
+            {register ? (
+              <p>
+                Đã có tài khoản?{' '}
+                <button type="button" onClick={() => setRegister(false)}>
+                  Đăng nhập
+                </button>
+              </p>
+            ) : (
+              <p>
+                Độc giả mới chưa có tài khoản?{' '}
+                <button type="button" onClick={() => setRegister(true)}>
+                  Đăng ký ngay
+                </button>
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>

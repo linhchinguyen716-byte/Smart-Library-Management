@@ -2,7 +2,7 @@
 {% block content %}
 <header class="page-header">
   <div>
-    <span class="page-kicker">06.1 // UPDATE PATRON RECORD</span>
+    <span class="page-kicker">Hiệu đính thành viên</span>
     <h1>Cập nhật hồ sơ độc giả</h1>
   </div>
   <a class="btn secondary" href="{{ url_for('readers') }}">← Quay lại danh bạ</a>
@@ -11,16 +11,16 @@
 <div class="split-layout">
   <section class="panel panel-subtle sticky-col">
     <div class="panel-header">
-      <h2>Định danh độc giả</h2>
+      <h2>Mã thẻ định danh</h2>
       <span class="code-cell">{{ reader.code }}</span>
     </div>
-    <p class="muted">Mọi thay đổi về thông tin liên lạc (Số điện thoại, Email) sẽ được áp dụng ngay cho phân hệ Cảnh báo và Nhắc hạn trả sách.</p>
+    <p class="muted">Thông tin liên lạc như Số điện thoại và Email được sử dụng để điều phối cảnh báo hạn mượn và gửi thông báo sách đến hạn.</p>
   </section>
 
   <form method="post" class="panel form-stack">
     <div class="panel-header">
       <h2>Thông tin chi tiết</h2>
-      <span class="section-index">PATRON #{{ reader.id }}</span>
+      <span class="tag neutral">Hồ sơ #{{ reader.id }}</span>
     </div>
     <div class="formgrid">
       {% for field, label in [
@@ -37,8 +37,8 @@
       </label>
       {% endfor %}
     </div>
-    <div class="actions" style="margin-top: 10px;">
-      <button>Lưu thay đổi</button>
+    <div class="actions" style="margin-top: 14px;">
+      <button type="submit" class="btn primary">Lưu thay đổi</button>
       <a class="btn secondary" href="{{ url_for('readers') }}">Quay lại</a>
     </div>
   </form>

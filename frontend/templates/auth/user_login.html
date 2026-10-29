@@ -1,21 +1,23 @@
 {% extends 'user_base.html' %}
 {% block content %}
 <section class="reader-auth panel">
-  <span class="page-kicker">CỔNG ĐỘC GIẢ</span>
-  <h1>Đăng nhập độc giả</h1>
-  <p>Tra cứu sách, đặt trước và xem lịch sử mượn của bạn.</p>
-  <form method="post" class="form-stack">
+  <div class="page-breadcrumb">CỔNG DÀNH CHO ĐỘC GIẢ</div>
+  <h1 style="margin-bottom: 8px;">Đăng nhập độc giả</h1>
+  <p class="muted">Tra cứu kho sách, gửi yêu cầu đặt trước và theo dõi lịch sử mượn trả của bạn.</p>
+  <form method="post" class="form-stack" style="margin-top: 18px;">
     <label>
-      Tài khoản
-      <input name="username" required autocomplete="username">
+      Tên đăng nhập
+      <input name="username" required autocomplete="username" placeholder="Nhập tài khoản độc giả">
     </label>
     <label>
       Mật khẩu
-      <input type="password" name="password" required autocomplete="current-password">
+      <input type="password" name="password" required autocomplete="current-password" placeholder="••••••••">
     </label>
-    <button>Đăng nhập</button>
+    <button style="margin-top: 4px;">Đăng nhập</button>
   </form>
-  <p>Chưa có tài khoản? <a href="{{ url_for('user_register') }}">Đăng ký độc giả</a></p>
-  <p><a href="{{ url_for('admin_login') }}">Đăng nhập nhân viên / Admin</a></p>
+  <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--border-color); font-size: 13px; display: flex; flex-direction: column; gap: 8px;">
+    <span>Chưa có tài khoản độc giả? <a href="{{ url_for('user_register') }}" style="color: var(--primary); font-weight: 500;">Đăng ký tài khoản mới →</a></span>
+    <span><a href="{{ url_for('admin_login') }}" style="color: var(--text-muted);">Đăng nhập tài khoản Nhân sự / Quản trị viên</a></span>
+  </div>
 </section>
 {% endblock %}

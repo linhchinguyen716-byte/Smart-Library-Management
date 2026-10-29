@@ -1,7 +1,9 @@
 """Nhóm chức năng: dashboard. Giữ nguyên endpoint để tương thích HTML cũ."""
 from ..core import *
 
-@app.route("/")
+
+@app.route("/admin")
+@app.route("/dashboard")
 @login_required
 def dashboard():
     conn = db()
@@ -20,5 +22,3 @@ def dashboard():
     """).fetchall()
     conn.close()
     return render_template("dashboard.html", stats=stats, popular=popular)
-
-

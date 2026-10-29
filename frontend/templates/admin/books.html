@@ -2,11 +2,11 @@
 {% block content %}
 <header class="page-header">
   <div>
-    <span class="page-kicker">04 // INVENTORY &amp; BIBLIOGRAPHIC REGISTRY</span>
+    <div class="page-breadcrumb">KHO SÁCH / ĐẦU SÁCH</div>
     <h1>Quản lý đầu sách</h1>
   </div>
   <div class="actions">
-    <a class="btn secondary" href="{{ url_for('export_csv', kind='books') }}">⬇ Xuất CSV danh mục</a>
+    <a class="btn secondary" href="{{ url_for('export_csv', kind='books') }}">Xuất CSV danh mục</a>
   </div>
 </header>
 
@@ -14,36 +14,35 @@
   <form method="post" class="panel sticky-col form-stack">
     <div class="panel-header">
       <h2>Tiếp nhận sách mới</h2>
-      <span class="section-index">NEW ENTRY</span>
     </div>
     <label>
-      Mã định danh sách
+      Mã sách
       <input name="code" class="mono" placeholder="Ví dụ: S004" required>
     </label>
     <label>
-      Nhan đề ấn phẩm
-      <input name="title" placeholder="Tên đầy đủ của sách" required>
+      Tên sách
+      <input name="title" placeholder="Tên đầy đủ của cuốn sách" required>
     </label>
     <label>
-      Tác giả / Nhóm biên soạn
+      Tác giả
       <input name="author" placeholder="Họ tên tác giả" required>
     </label>
     <label>
       Nhà xuất bản
       <input name="publisher" placeholder="Đơn vị xuất bản">
     </label>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
       <label>
         Năm xuất bản
         <input type="number" name="year" placeholder="2024">
       </label>
       <label>
-        Số lượng nhập
+        Số lượng
         <input type="number" name="quantity" min="1" value="1" required>
       </label>
     </div>
     <label>
-      Phân loại chuyên mục
+      Chuyên mục thể loại
       <select name="category_id">
         <option value="">— Chưa phân loại —</option>
         {% for c in categories %}
@@ -51,59 +50,61 @@
         {% endfor %}
       </select>
     </label>
-    <button style="margin-top: 6px;">Lưu vào kho lưu trữ</button>
+    <button style="margin-top: 4px;">Lưu vào kho sách</button>
   </form>
 
   <section class="panel">
     <div class="panel-header">
       <h2>Danh mục kho sách</h2>
-      <span class="section-index">{{ books|length }} TITLES</span>
+      <span class="tag neutral">{{ books|length }} đầu sách</span>
     </div>
-    <form method="get" class="filters" style="margin-bottom: 16px;">
-      <input name="q" placeholder="Tìm theo tên sách, mã định danh hoặc tác giả..." value="{{ q }}">
+    <form method="get" class="filters" style="margin-bottom: 14px;">
+      <input name="q" placeholder="Tìm theo tên sách, mã hoặc tác giả..." value="{{ q }}">
       <button>Tìm kiếm</button>
       {% if q %}
-      <a class="btn secondary" href="{{ url_for('books') }}">Xóa lọc</a>
+      <a class="btn secondary" href="{{ url_for('books') }}">Bỏ lọc</a>
       {% endif %}
     </form>
-    <table>
-      <thead>
-        <tr>
-          <th style="width: 84px;">Mã</th>
-          <th>Nhan đề</th>
-          <th>Tác giả</th>
-          <th>Thể loại</th>
-          <th style="width: 100px;">Tồn kho</th>
-          <th style="width: 220px;">Thao tác</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for b in books %}
-        <tr>
-          <td><span class="code-cell">{{ b.code }}</span></td>
-          <td style="font-weight: 600;">{{ b.title }}</td>
-          <td>{{ b.author }}</td>
-          <td>{{ b.category or '—' }}</td>
-          <td>
-            <span class="tag {% if b.available == 0 %}bad{% endif %}">{{ b.available }} / {{ b.quantity }}</span>
-          </td>
-          <td>
-            <div class="actions">
-              <a class="btn secondary btn-sm" href="{{ url_for('book_detail', id=b.id) }}">QR / Hồ sơ</a>
-              <a class="btn secondary btn-sm" href="{{ url_for('edit_book', id=b.id) }}">Sửa</a>
-              <form method="post" action="{{ url_for('delete_book', id=b.id) }}" onsubmit="return confirm('Xóa sách?')">
-                <button class="danger btn-sm">Xóa</button>
-              </form>
-            </div>
-          </td>
-        </tr>
-        {% else %}
-        <tr>
-          <td colspan="6" class="empty-state">Chưa có dữ liệu sách trong kho.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 75px;">Mã</th>
+            <th>Nhan đề sách</th>
+            <th>Tác giả</th>
+            <th>Thể loại</th>
+            <th style="width: 90px;">Tồn kho</th>
+            <th style="width: 190px;">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in books %}
+          <tr>
+            <td><span class="code-cell">{{ b.code }}</span></td>
+            <td style="font-weight: 500;">{{ b.title }}</td>
+            <td>{{ b.author }}</td>
+            <td>{{ b.category or '—' }}</td>
+            <td>
+              <span class="tag {% if b.available == 0 %}bad{% endif %}">{{ b.available }} / {{ b.quantity }}</span>
+            </td>
+            <td>
+              <div class="actions">
+                <a class="btn secondary btn-sm" href="{{ url_for('book_detail', id=b.id) }}">QR / Chi tiết</a>
+                <a class="btn secondary btn-sm" href="{{ url_for('edit_book', id=b.id) }}">Sửa</a>
+                <form method="post" action="{{ url_for('delete_book', id=b.id) }}" onsubmit="return confirm('Bạn có chắc muốn xóa đầu sách này?')">
+                  <button class="danger btn-sm">Xóa</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="6" class="empty-state">Kho sách hiện đang trống.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </section>
 </div>
 {% endblock %}

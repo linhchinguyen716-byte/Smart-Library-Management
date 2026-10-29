@@ -16,6 +16,43 @@ from .config import DB, SECRET_KEY, STATIC_DIR, TEMPLATE_DIR, TEMPLATE_SEARCH_PA
 from .database import db, init_db
 from .middleware import login_required, reader_required, password_matches, log_action
 
+__all__ = [
+    "app",
+    "render_template",
+    "request",
+    "redirect",
+    "url_for",
+    "flash",
+    "session",
+    "abort",
+    "Response",
+    "FileSystemLoader",
+    "sqlite3",
+    "csv",
+    "io",
+    "os",
+    "qrcode",
+    "PilImage",
+    "date",
+    "datetime",
+    "timedelta",
+    "wraps",
+    "generate_password_hash",
+    "check_password_hash",
+    "secrets",
+    "DB",
+    "SECRET_KEY",
+    "STATIC_DIR",
+    "TEMPLATE_DIR",
+    "TEMPLATE_SEARCH_PATHS",
+    "db",
+    "init_db",
+    "login_required",
+    "reader_required",
+    "password_matches",
+    "log_action",
+]
+
 app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
 app.jinja_loader = FileSystemLoader(TEMPLATE_SEARCH_PATHS)
 app.secret_key = SECRET_KEY

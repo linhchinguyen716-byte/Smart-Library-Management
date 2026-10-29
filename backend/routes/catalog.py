@@ -60,6 +60,29 @@ def delete_book(id):
     conn.close(); return redirect(url_for("books"))
 
 
+@app.get("/")
+def home():
+    q = request.args.get("q", "").strip()
+    category = request.args.get("category", type=int)
+    available_only = request.args.get("available") == "1"
+    sql = """SELECT b.*, c.name AS category FROM books b
+             LEFT JOIN categories c ON c.id=b.category_id WHERE 1=1"""
+    params = []
+    if q:
+        sql += " AND (b.title LIKE ? OR b.author LIKE ? OR b.code LIKE ? OR b.publisher LIKE ?)"
+        params.extend([f"%{q}%"] * 4)
+    if category:
+        sql += " AND b.category_id=?"
+        params.append(category)
+    if available_only:
+        sql += " AND b.available>0"
+    sql += " ORDER BY b.title COLLATE NOCASE"
+    with db() as conn:
+        rows = conn.execute(sql, params).fetchall()
+        cats = conn.execute("SELECT * FROM categories ORDER BY name").fetchall()
+    return render_template("public_home.html", books=rows, categories=cats, q=q, category=category, available_only=available_only)
+
+
 @app.get("/catalog")
 @login_required
 def catalog():

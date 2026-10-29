@@ -3,65 +3,126 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Smart Library — Hệ thống Lưu trữ & Quản trị Thư viện</title>
+  <title>Smart Library — Hệ thống Quản trị Thư viện</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <aside>
-    <div class="brand-block">
-      <span class="brand-kicker">ARCHIVE SYSTEM // V2.4</span>
-      <h2>Smart Library</h2>
-      {% if logged_in %}
-      <div class="operator-meta">
-        <span><i class="operator-dot"></i><strong>{{ employee_name }}</strong></span>
-        <span class="mono">{{ session.get('role', 'Staff') }}</span>
-      </div>
-      {% endif %}
+  {% if logged_in %}
+  <header class="mobile-topbar">
+    <div class="brand-title">
+      <span class="brand-icon">📚</span>
+      <strong>Smart Library</strong>
     </div>
-    {% if logged_in %}
-    <nav>
-      {% for idx, endpoint, label in [
-        ('01', 'dashboard', 'Tổng quan'),
-        ('02', 'catalog', 'Tra cứu danh mục'),
-        ('03', 'scan_books', 'Quét / Tìm mã sách'),
-        ('04', 'books', 'Quản lý đầu sách'),
-        ('05', 'categories', 'Phân loại chuyên mục'),
-        ('06', 'readers', 'Hồ sơ độc giả'),
-        ('07', 'employees', 'Nhân sự thư viện'),
-        ('08', 'loans', 'Lưu thông mượn / trả'),
-        ('09', 'reservations', 'Hàng chờ đặt trước'),
-        ('10', 'alerts', 'Trung tâm cảnh báo'),
-        ('11', 'reminder_history', 'Nhật ký nhắc hạn'),
-        ('12', 'history', 'Sổ cái lịch sử mượn'),
-        ('13', 'overdue', 'Hồ sơ quá hạn'),
-        ('14', 'reports', 'Phân tích & Báo cáo'),
-        ('15', 'activity', 'Nhật ký kiểm toán')
-      ] %}
-      <a href="{{ url_for(endpoint) }}" class="{% if request.endpoint == endpoint %}active{% endif %}">
-        <span class="nav-idx">{{ idx }}</span>
-        <span>{{ label }}</span>
+    <button type="button" class="mobile-toggle" id="menuToggle" aria-label="Mở menu điều hướng">
+      ☰ Menu
+    </button>
+  </header>
+  <div class="sidebar-backdrop" id="drawerBackdrop"></div>
+  <aside id="appSidebar">
+    <div class="brand-block">
+      <div class="brand-title">
+        <span class="brand-icon">📚</span>
+        <h2>Smart Library</h2>
+      </div>
+      <div class="operator-meta">
+        <span class="operator-badge">
+          <i class="operator-dot"></i>
+          {{ employee_name }}
+        </span>
+        <span class="tag neutral" style="font-size: 11px; padding: 1px 5px;">{{ session.get('role', 'Nhân viên') }}</span>
+      </div>
+    </div>
+    <nav class="nav-scroll">
+      <span class="nav-category">Tổng quan & Tra cứu</span>
+      <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">
+        <span>Tổng quan thư viện</span>
       </a>
-      {% endfor %}
+      <a href="{{ url_for('catalog') }}" class="{% if request.endpoint == 'catalog' %}active{% endif %}">
+        <span>Tra cứu danh mục</span>
+      </a>
+      <a href="{{ url_for('scan_books') }}" class="{% if request.endpoint == 'scan_books' %}active{% endif %}">
+        <span>Quét / Tìm mã sách</span>
+      </a>
+
+      <span class="nav-category">Quản lý kho & Người dùng</span>
+      <a href="{{ url_for('books') }}" class="{% if request.endpoint == 'books' %}active{% endif %}">
+        <span>Quản lý đầu sách</span>
+      </a>
+      <a href="{{ url_for('categories') }}" class="{% if request.endpoint == 'categories' %}active{% endif %}">
+        <span>Chuyên mục thể loại</span>
+      </a>
+      <a href="{{ url_for('readers') }}" class="{% if request.endpoint == 'readers' %}active{% endif %}">
+        <span>Hồ sơ độc giả</span>
+      </a>
+      {% if session.get('role') == 'Admin' %}
+      <a href="{{ url_for('employees') }}" class="{% if request.endpoint == 'employees' %}active{% endif %}">
+        <span>Nhân sự thư viện</span>
+      </a>
+      {% endif %}
+
+      <span class="nav-category">Lưu thông & Đặt trước</span>
+      <a href="{{ url_for('loans') }}" class="{% if request.endpoint == 'loans' %}active{% endif %}">
+        <span>Mượn và trả sách</span>
+      </a>
+      <a href="{{ url_for('reservations') }}" class="{% if request.endpoint == 'reservations' %}active{% endif %}">
+        <span>Hàng chờ đặt trước</span>
+      </a>
+      <a href="{{ url_for('alerts') }}" class="{% if request.endpoint == 'alerts' %}active{% endif %}">
+        <span>Cảnh báo & Nhắc hạn</span>
+      </a>
+      <a href="{{ url_for('reminder_history') }}" class="{% if request.endpoint == 'reminder_history' %}active{% endif %}">
+        <span>Lịch sử nhắc hạn</span>
+      </a>
+      <a href="{{ url_for('history') }}" class="{% if request.endpoint == 'history' %}active{% endif %}">
+        <span>Sổ cái lịch sử mượn</span>
+      </a>
+      <a href="{{ url_for('overdue') }}" class="{% if request.endpoint == 'overdue' %}active{% endif %}">
+        <span>Hồ sơ quá hạn</span>
+      </a>
+
+      <span class="nav-category">Thống kê & Kiểm toán</span>
+      <a href="{{ url_for('reports') }}" class="{% if request.endpoint == 'reports' %}active{% endif %}">
+        <span>Báo cáo thống kê</span>
+      </a>
+      <a href="{{ url_for('activity') }}" class="{% if request.endpoint == 'activity' %}active{% endif %}">
+        <span>Nhật ký thao tác</span>
+      </a>
+
       <a href="{{ url_for('logout') }}" class="nav-logout">
-        <span class="nav-idx">→</span>
         <span>Đăng xuất phiên</span>
       </a>
     </nav>
-    {% endif %}
   </aside>
+  {% endif %}
+
   <main>
     {% with msgs = get_flashed_messages(with_categories=true) %}
       {% for category, message in msgs %}
-        <div class="flash {{ category }}">
+        <div class="flash {{ category }}" role="alert">
           <span>{{ message }}</span>
-          <span class="mono">SYS_MSG</span>
         </div>
       {% endfor %}
     {% endwith %}
     {% block content %}{% endblock %}
   </main>
+
+  {% if logged_in %}
+  <script>
+    const menuToggle = document.getElementById('menuToggle');
+    const appSidebar = document.getElementById('appSidebar');
+    const drawerBackdrop = document.getElementById('drawerBackdrop');
+    if (menuToggle && appSidebar && drawerBackdrop) {
+      function toggleMenu() {
+        appSidebar.classList.toggle('drawer-open');
+        drawerBackdrop.classList.toggle('drawer-open');
+      }
+      menuToggle.addEventListener('click', toggleMenu);
+      drawerBackdrop.addEventListener('click', toggleMenu);
+    }
+  </script>
+  {% endif %}
 </body>
 </html>

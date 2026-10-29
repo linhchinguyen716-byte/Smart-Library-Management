@@ -2,19 +2,18 @@
 {% block content %}
 <header class="page-header">
   <div>
-    <span class="page-kicker">09 // HOLD QUEUE &amp; RESERVATIONS</span>
+    <span class="page-kicker">Quản lý đặt trước</span>
     <h1>Hàng chờ đặt trước sách</h1>
   </div>
-  <span class="tag neutral">{{ reservations|length }} YÊU CẦU</span>
+  <span class="tag neutral">{{ reservations|length }} yêu cầu</span>
 </header>
 
 <div class="split-layout">
   <form method="post" class="panel sticky-col form-stack">
     <div class="panel-header">
       <h2>Ghi nhận yêu cầu mới</h2>
-      <span class="section-index">RESERVE</span>
     </div>
-    <p class="muted">Thủ thư ghi nhận yêu cầu giữ chỗ vào hàng chờ nội bộ. Khi kho có sách khả dụng, đánh dấu trạng thái đã thông báo cho độc giả.</p>
+    <p class="muted">Ghi nhận yêu cầu giữ chỗ vào hàng chờ. Khi sách khả dụng, hệ thống sẽ hiển thị cảnh báo để thông báo cho độc giả.</p>
     <label>
       Độc giả yêu cầu
       <select name="reader_id" required>
@@ -33,61 +32,62 @@
         {% endfor %}
       </select>
     </label>
-    <button style="margin-top: 6px;">Đưa vào hàng chờ</button>
+    <button type="submit" class="btn primary" style="margin-top: 6px;">Đưa vào hàng chờ</button>
   </form>
 
   <section class="panel">
     <div class="panel-header">
       <h2>Danh sách hàng chờ đặt trước</h2>
-      <span class="section-index">QUEUE STATUS</span>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <th>Độc giả</th>
-          <th>Ấn phẩm (Tồn kho)</th>
-          <th style="width: 155px;">Thời điểm đặt</th>
-          <th style="width: 125px;">Trạng thái</th>
-          <th style="width: 190px;">Xử lý</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for r in reservations %}
-        <tr>
-          <td style="font-weight: 600;">{{ r.reader }}</td>
-          <td>{{ r.title }} <span class="mono" style="color: var(--ink-muted);">(còn {{ r.available }})</span></td>
-          <td class="mono">{{ r.reserved_at }}</td>
-          <td>
-            <span class="tag {% if r.status == 'Đã hủy' %}bad{% elif r.status == 'Chờ xử lý' %}warn{% elif r.status == 'Hoàn tất' %}neutral{% endif %}">{{ r.status }}</span>
-          </td>
-          <td>
-            {% if r.status == 'Chờ xử lý' %}
-            <div class="actions">
-              <form method="post" action="{{ url_for('reservation_status', id=r.id) }}">
-                <input type="hidden" name="status" value="Đã thông báo">
-                <button class="btn-sm">Đã thông báo</button>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Độc giả</th>
+            <th>Ấn phẩm (Tồn kho)</th>
+            <th style="width: 155px;">Thời điểm đặt</th>
+            <th style="width: 125px;">Trạng thái</th>
+            <th style="width: 190px;">Xử lý</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in reservations %}
+          <tr>
+            <td style="font-weight: 600;">{{ r.reader }}</td>
+            <td>{{ r.title }} <span class="mono" style="color: var(--ink-muted);">(còn {{ r.available }})</span></td>
+            <td class="mono">{{ r.reserved_at }}</td>
+            <td>
+              <span class="tag {% if r.status == 'Đã hủy' %}bad{% elif r.status == 'Chờ xử lý' %}warn{% elif r.status == 'Hoàn tất' %}neutral{% else %}good{% endif %}">{{ r.status }}</span>
+            </td>
+            <td>
+              {% if r.status == 'Chờ xử lý' %}
+              <div class="actions">
+                <form method="post" action="{{ url_for('reservation_status', id=r.id) }}">
+                  <input type="hidden" name="status" value="Đã thông báo">
+                  <button type="submit" class="btn primary btn-sm">Đã thông báo</button>
+                </form>
+                <form method="post" action="{{ url_for('reservation_status', id=r.id) }}">
+                  <input type="hidden" name="status" value="Đã hủy">
+                  <button type="submit" class="btn danger btn-sm">Hủy</button>
+                </form>
+              </div>
+              {% elif r.status == 'Đã thông báo' %}
+              <form method="post" action="{{ url_for('complete_reservation', id=r.id) }}">
+                <button type="submit" class="btn secondary btn-sm">✓ Hoàn tất</button>
               </form>
-              <form method="post" action="{{ url_for('reservation_status', id=r.id) }}">
-                <input type="hidden" name="status" value="Đã hủy">
-                <button class="danger btn-sm">Hủy</button>
-              </form>
-            </div>
-            {% elif r.status == 'Đã thông báo' %}
-            <form method="post" action="{{ url_for('complete_reservation', id=r.id) }}">
-              <button class="secondary btn-sm">✓ Hoàn tất</button>
-            </form>
-            {% else %}
-            <span class="mono" style="color: var(--ink-muted);">—</span>
-            {% endif %}
-          </td>
-        </tr>
-        {% else %}
-        <tr>
-          <td colspan="5" class="empty-state">Hàng chờ đặt trước hiện đang trống.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+              {% else %}
+              <span class="mono" style="color: var(--ink-muted);">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="5" class="empty-state">Hàng chờ đặt trước hiện đang trống.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </section>
 </div>
 {% endblock %}

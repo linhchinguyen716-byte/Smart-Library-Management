@@ -2,8 +2,8 @@
 {% block content %}
 <header class="page-header">
   <div>
-    <span class="page-kicker">04.2 // EDIT BIBLIOGRAPHIC RECORD</span>
-    <h1>Hiệu đính thông tin sách</h1>
+    <span class="page-kicker">Hiệu đính ấn phẩm</span>
+    <h1>Chỉnh sửa thông tin sách</h1>
   </div>
   <a class="btn secondary" href="{{ url_for('books') }}">← Quay lại danh mục</a>
 </header>
@@ -28,7 +28,7 @@
   <form method="post" class="panel form-stack">
     <div class="panel-header">
       <h2>Biểu mẫu cập nhật</h2>
-      <span class="section-index">ID #{{ book.id }}</span>
+      <span class="tag neutral">ID #{{ book.id }}</span>
     </div>
     <div class="formgrid">
       <label>
@@ -65,8 +65,8 @@
         <input type="number" name="quantity" min="0" value="{{ book.quantity }}" required>
       </label>
     </div>
-    <div class="actions" style="margin-top: 10px;">
-      <button>Lưu thay đổi</button>
+    <div class="actions" style="margin-top: 14px;">
+      <button type="submit" class="btn primary">Lưu thay đổi</button>
       <a class="btn secondary" href="{{ url_for('books') }}">Hủy bỏ</a>
     </div>
   </form>

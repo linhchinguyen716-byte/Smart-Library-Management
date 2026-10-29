@@ -1,0 +1,110 @@
+{% extends 'user_base.html' %}
+{% block content %}
+<header class="page-header" style="margin-bottom: 24px;">
+  <div>
+    <span class="page-kicker">Cổng tra cứu cộng đồng</span>
+    <h1>Tra cứu &amp; Danh mục ấn phẩm Thư viện</h1>
+    <p class="muted" style="margin-top: 6px; font-size: 14px;">Khám phá kho tri thức, kiểm tra tình trạng tồn kho thời gian thực và đăng ký mượn / đặt trước ấn phẩm.</p>
+  </div>
+  <div class="actions">
+    {% if not session.get('reader_id') and not session.get('employee_id') %}
+    <a class="btn primary" href="{{ url_for('user_login') }}">Đăng nhập để đặt mượn</a>
+    {% endif %}
+  </div>
+</header>
+
+<div class="split-layout">
+  <form method="get" action="{{ url_for('home') }}" class="panel sticky-col form-stack">
+    <div class="panel-header">
+      <h2>Bộ lọc tra cứu</h2>
+    </div>
+    <label>
+      Từ khóa tìm kiếm
+      <input name="q" value="{{ q }}" placeholder="Tên sách, tác giả, mã, NXB...">
+    </label>
+    <label>
+      Chuyên mục thể loại
+      <select name="category">
+        <option value="">Tất cả thể loại</option>
+        {% for c in categories %}
+        <option value="{{ c.id }}" {% if category == c.id %}selected{% endif %}>{{ c.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="check">
+      <input type="checkbox" name="available" value="1" {% if available_only %}checked{% endif %}>
+      Chỉ hiển thị sách còn sẵn trong kho
+    </label>
+    <div class="actions" style="margin-top: 8px;">
+      <button type="submit" class="btn primary" style="flex: 1;">Tìm kiếm</button>
+      {% if q or category or available_only %}
+      <a class="btn secondary" href="{{ url_for('home') }}">Xóa lọc</a>
+      {% endif %}
+    </div>
+  </form>
+
+  <section class="panel">
+    <div class="panel-header">
+      <h2>Danh mục ấn phẩm</h2>
+      <span class="tag neutral">{{ books|length }} kết quả</span>
+    </div>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 85px;">Mã sách</th>
+            <th>Nhan đề ấn phẩm</th>
+            <th>Tác giả</th>
+            <th>Thể loại</th>
+            <th style="width: 120px;">Trạng thái kho</th>
+            <th style="width: 150px; text-align: right;">Hành động</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in books %}
+          <tr>
+            <td><span class="code-cell">{{ b.code }}</span></td>
+            <td>
+              <div style="font-weight: 600; color: var(--ink-primary);">{{ b.title }}</div>
+              <div class="muted" style="font-size: 12px; margin-top: 2px;">{{ b.publisher or 'NXB chưa cập nhật' }}{% if b.year %} ({{ b.year }}){% endif %}</div>
+            </td>
+            <td>{{ b.author }}</td>
+            <td>{{ b.category or 'Chưa phân loại' }}</td>
+            <td>
+              {% if b.available > 0 %}
+              <span class="tag good">{{ b.available }} / {{ b.quantity }} bản</span>
+              {% else %}
+              <span class="tag bad">Tạm hết sách</span>
+              {% endif %}
+            </td>
+            <td style="text-align: right;">
+              {% if session.get('reader_id') %}
+                {% if b.available == 0 %}
+                <form method="post" action="{{ url_for('user_reserve', book_id=b.id) }}" style="display: inline-block;">
+                  <button type="submit" class="btn primary btn-sm">Đặt trước</button>
+                </form>
+                {% else %}
+                <span class="tag neutral">Sẵn sàng tại quầy</span>
+                {% endif %}
+              {% elif session.get('employee_id') %}
+                <a class="btn secondary btn-sm" href="{{ url_for('book_detail', id=b.id) }}">Xem hồ sơ</a>
+              {% else %}
+                {% if b.available == 0 %}
+                <a class="btn secondary btn-sm" href="{{ url_for('user_login') }}">Đăng nhập đặt trước</a>
+                {% else %}
+                <span class="tag neutral">Có sẵn tại thư viện</span>
+                {% endif %}
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="6" class="empty-state">Không tìm thấy đầu sách nào phù hợp với điều kiện tìm kiếm.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

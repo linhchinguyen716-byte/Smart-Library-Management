@@ -2,17 +2,16 @@
 {% block content %}
 <header class="page-header">
   <div>
-    <span class="page-kicker">07 // STAFF &amp; ACCESS PRIVILEGE</span>
+    <span class="page-kicker">Quản trị hệ thống</span>
     <h1>Quản lý nhân sự thư viện</h1>
   </div>
-  <span class="tag neutral">ADMINISTRATION ONLY</span>
+  <span class="tag warn">Chỉ dành cho Quản trị viên</span>
 </header>
 
 <div class="split-layout">
   <form method="post" class="panel sticky-col form-stack">
     <div class="panel-header">
       <h2>Cấp tài khoản nhân sự</h2>
-      <span class="section-index">NEW OPERATOR</span>
     </div>
     <label>
       Mã nhân viên
@@ -37,46 +36,48 @@
         <option>Admin</option>
       </select>
     </label>
-    <button style="margin-top: 6px;">Thêm nhân sự</button>
+    <button type="submit" class="btn primary" style="margin-top: 6px;">Thêm nhân sự</button>
   </form>
 
   <section class="panel">
     <div class="panel-header">
-      <h2>Danh sách nhân sự vận hành</h2>
-      <span class="section-index">{{ employees|length }} ACCOUNTS</span>
+      <h2>Danh sách tài khoản nhân sự</h2>
+      <span class="tag neutral">{{ employees|length }} tài khoản</span>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <th style="width: 90px;">Mã NV</th>
-          <th>Họ và tên</th>
-          <th>Tài khoản</th>
-          <th style="width: 130px;">Vai trò</th>
-          <th style="width: 110px;">Thao tác</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for e in employees %}
-        <tr>
-          <td><span class="code-cell">{{ e.code }}</span></td>
-          <td style="font-weight: 600;">{{ e.name }}</td>
-          <td class="mono">{{ e.username }}</td>
-          <td>
-            <span class="tag {% if e.role == 'Admin' %}warn{% else %}neutral{% endif %}">{{ e.role }}</span>
-          </td>
-          <td>
-            <form method="post" action="{{ url_for('delete_employee', id=e.id) }}" onsubmit="return confirm('Xóa nhân viên?')">
-              <button class="danger btn-sm">Xóa</button>
-            </form>
-          </td>
-        </tr>
-        {% else %}
-        <tr>
-          <td colspan="5" class="empty-state">Chưa có dữ liệu nhân sự.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 90px;">Mã NV</th>
+            <th>Họ và tên</th>
+            <th>Tài khoản</th>
+            <th style="width: 130px;">Vai trò</th>
+            <th style="width: 110px;">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in employees %}
+          <tr>
+            <td><span class="code-cell">{{ e.code }}</span></td>
+            <td style="font-weight: 600;">{{ e.name }}</td>
+            <td class="mono">{{ e.username }}</td>
+            <td>
+              <span class="tag {% if e.role == 'Admin' %}warn{% else %}neutral{% endif %}">{{ e.role }}</span>
+            </td>
+            <td>
+              <form method="post" action="{{ url_for('delete_employee', id=e.id) }}" onsubmit="return confirm('Bạn có chắc chắn muốn xóa nhân viên này?')">
+                <button type="submit" class="btn danger btn-sm">Xóa</button>
+              </form>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="5" class="empty-state">Chưa có dữ liệu nhân sự.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </section>
 </div>
 {% endblock %}

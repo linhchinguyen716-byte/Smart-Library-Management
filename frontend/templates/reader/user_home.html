@@ -2,96 +2,125 @@
 {% block content %}
 <div class="page-header">
   <div>
-    <span class="page-kicker">THƯ VIỆN CỦA TÔI</span>
+    <div class="page-breadcrumb">KHÔNG GIAN ĐỘC GIẢ</div>
     <h1>Xin chào, {{ session.get('reader_name') }}</h1>
   </div>
 </div>
 
 <section class="panel">
-  <h2>Danh mục sách</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Mã</th>
-        <th>Tên sách</th>
-        <th>Tác giả</th>
-        <th>Thể loại</th>
-        <th>Còn</th>
-        <th>Đặt trước</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for b in books %}
-      <tr>
-        <td>{{ b.code }}</td>
-        <td>{{ b.title }}</td>
-        <td>{{ b.author }}</td>
-        <td>{{ b.category or '-' }}</td>
-        <td>{{ b.available }}</td>
-        <td>
-          <form method="post" action="{{ url_for('user_reserve', book_id=b.id) }}">
-            <button class="btn-sm">Đặt trước</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="panel-header">
+    <h2>Kho sách thư viện</h2>
+    <span class="tag neutral">{{ books|length }} đầu sách</span>
+  </div>
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 80px;">Mã</th>
+          <th>Nhan đề sách</th>
+          <th>Tác giả</th>
+          <th>Thể loại</th>
+          <th style="width: 100px;">Khả dụng</th>
+          <th style="width: 110px;">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in books %}
+        <tr>
+          <td><span class="code-cell">{{ b.code }}</span></td>
+          <td style="font-weight: 500;">{{ b.title }}</td>
+          <td>{{ b.author }}</td>
+          <td>{{ b.category or '—' }}</td>
+          <td>
+            <span class="tag {% if b.available == 0 %}bad{% endif %}">{{ b.available }} bản</span>
+          </td>
+          <td>
+            <form method="post" action="{{ url_for('user_reserve', book_id=b.id) }}">
+              <button class="btn-sm">Đặt trước</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="6" class="empty-state">Hiện chưa có sách nào trong kho.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </section>
 
 <section class="panel">
-  <h2>Yêu cầu đặt trước của tôi</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Sách</th>
-        <th>Ngày yêu cầu</th>
-        <th>Trạng thái</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for r in reservations %}
-      <tr>
-        <td>{{ r.title }}</td>
-        <td>{{ r.reserved_at }}</td>
-        <td>{{ r.status }}</td>
-      </tr>
-      {% else %}
-      <tr>
-        <td colspan="3">Chưa có yêu cầu</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="panel-header">
+    <h2>Yêu cầu đặt trước của bạn</h2>
+    <span class="tag neutral">{{ reservations|length }} yêu cầu</span>
+  </div>
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Tên sách</th>
+          <th style="width: 160px;">Thời điểm đặt</th>
+          <th style="width: 130px;">Trạng thái</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in reservations %}
+        <tr>
+          <td style="font-weight: 500;">{{ r.title }}</td>
+          <td class="mono" style="font-size: 12px;">{{ r.reserved_at }}</td>
+          <td>
+            <span class="tag {% if r.status == 'Đã hủy' %}bad{% elif r.status == 'Chờ xử lý' %}warn{% elif r.status == 'Đã thông báo' %}neutral{% endif %}">
+              {{ r.status }}
+            </span>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="3" class="empty-state">Bạn chưa có yêu cầu đặt trước nào.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </section>
 
 <section class="panel">
-  <h2>Lịch sử mượn trả của tôi</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Mã phiếu</th>
-        <th>Sách</th>
-        <th>Ngày mượn</th>
-        <th>Hạn trả</th>
-        <th>Trạng thái</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for l in loans %}
-      <tr>
-        <td>{{ l.code }}</td>
-        <td>{{ l.titles }}</td>
-        <td>{{ l.borrow_date }}</td>
-        <td>{{ l.due_date }}</td>
-        <td>{{ l.status }}</td>
-      </tr>
-      {% else %}
-      <tr>
-        <td colspan="5">Chưa có phiếu mượn</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="panel-header">
+    <h2>Lịch sử mượn và trả sách</h2>
+    <span class="tag neutral">{{ loans|length }} phiếu</span>
+  </div>
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 130px;">Mã phiếu</th>
+          <th>Ấn phẩm đã mượn</th>
+          <th style="width: 110px;">Ngày mượn</th>
+          <th style="width: 110px;">Hạn trả</th>
+          <th style="width: 110px;">Trạng thái</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in loans %}
+        <tr>
+          <td><span class="code-cell">{{ l.code }}</span></td>
+          <td style="font-weight: 500;">{{ l.titles }}</td>
+          <td class="mono">{{ l.borrow_date }}</td>
+          <td class="mono">{{ l.due_date }}</td>
+          <td>
+            <span class="tag {% if l.status == 'Đã trả' %}neutral{% else %}warn{% endif %}">
+              {{ l.status }}
+            </span>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="5" class="empty-state">Bạn chưa từng mượn sách nào tại thư viện.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </section>
 {% endblock %}

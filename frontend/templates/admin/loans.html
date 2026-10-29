@@ -2,11 +2,11 @@
 {% block content %}
 <header class="page-header">
   <div>
-    <span class="page-kicker">08 // CIRCULATION DESK &amp; LOAN LEDGER</span>
+    <span class="page-kicker">Lưu thông ấn phẩm</span>
     <h1>Lưu thông mượn và trả sách</h1>
   </div>
   <div class="actions">
-    <a class="btn secondary" href="{{ url_for('export_csv', kind='loans') }}">⬇ Xuất CSV phiếu mượn</a>
+    <a class="btn secondary" href="{{ url_for('export_csv', kind='loans') }}">Xuất danh sách CSV</a>
   </div>
 </header>
 
@@ -14,7 +14,6 @@
   <form method="post" class="panel sticky-col form-stack">
     <div class="panel-header">
       <h2>Lập phiếu mượn mới</h2>
-      <span class="section-index">ISSUE LOAN</span>
     </div>
     <label>
       Độc giả mượn sách
@@ -44,57 +43,59 @@
         <input type="date" name="due_date" min="{{ today }}" required>
       </label>
     </div>
-    <button style="margin-top: 6px;">Phát hành phiếu mượn</button>
+    <button type="submit" class="btn primary" style="margin-top: 6px;">Phát hành phiếu mượn</button>
   </form>
 
   <section class="panel">
     <div class="panel-header">
       <h2>Sổ theo dõi phiếu mượn</h2>
-      <span class="section-index">{{ loans|length }} RECORDS</span>
+      <span class="tag neutral">{{ loans|length }} phiếu</span>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <th style="width: 135px;">Mã phiếu</th>
-          <th>Độc giả</th>
-          <th>Ấn phẩm &amp; Số lượng</th>
-          <th style="width: 110px;">Hạn trả</th>
-          <th style="width: 110px;">Trạng thái</th>
-          <th style="width: 195px;">Nghiệp vụ</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for l in loans %}
-        <tr>
-          <td><span class="code-cell">{{ l.code }}</span></td>
-          <td style="font-weight: 600;">{{ l.reader }}</td>
-          <td>{{ l.books }}</td>
-          <td class="mono">{{ l.due_date }}</td>
-          <td>
-            <span class="tag {% if l.status == 'Đã trả' %}neutral{% elif l.due_date < today %}bad{% endif %}">{{ l.status }}</span>
-          </td>
-          <td>
-            {% if l.status == 'Đang mượn' %}
-            <div class="actions">
-              <form method="post" action="{{ url_for('return_loan', id=l.id) }}">
-                <button class="btn-sm">Thu hồi</button>
-              </form>
-              <form method="post" action="{{ url_for('renew_loan', id=l.id) }}">
-                <button class="secondary btn-sm">+7 ngày</button>
-              </form>
-            </div>
-            {% else %}
-            <span class="mono" style="color: var(--ink-muted);">—</span>
-            {% endif %}
-          </td>
-        </tr>
-        {% else %}
-        <tr>
-          <td colspan="6" class="empty-state">Chưa phát sinh phiếu mượn nào.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 135px;">Mã phiếu</th>
+            <th>Độc giả</th>
+            <th>Ấn phẩm &amp; Số lượng</th>
+            <th style="width: 110px;">Hạn trả</th>
+            <th style="width: 110px;">Trạng thái</th>
+            <th style="width: 185px;">Nghiệp vụ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for l in loans %}
+          <tr>
+            <td><span class="code-cell">{{ l.code }}</span></td>
+            <td style="font-weight: 600;">{{ l.reader }}</td>
+            <td>{{ l.books }}</td>
+            <td class="mono">{{ l.due_date }}</td>
+            <td>
+              <span class="tag {% if l.status == 'Đã trả' %}neutral{% elif l.due_date < today %}bad{% else %}warn{% endif %}">{{ l.status }}</span>
+            </td>
+            <td>
+              {% if l.status == 'Đang mượn' %}
+              <div class="actions">
+                <form method="post" action="{{ url_for('return_loan', id=l.id) }}">
+                  <button type="submit" class="btn primary btn-sm">Thu hồi</button>
+                </form>
+                <form method="post" action="{{ url_for('renew_loan', id=l.id) }}">
+                  <button type="submit" class="btn secondary btn-sm">+7 ngày</button>
+                </form>
+              </div>
+              {% else %}
+              <span class="mono" style="color: var(--ink-muted);">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="6" class="empty-state">Chưa phát sinh phiếu mượn nào.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </section>
 </div>
 {% endblock %}
