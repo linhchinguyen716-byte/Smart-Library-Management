@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block content %}
+<header class="page-header">
+  <div>
+    <span class="page-kicker">02 // ARCHIVAL INDEX &amp; DISCOVERY</span>
+    <h1>Tra cứu sách nâng cao</h1>
+  </div>
+  <span class="tag neutral">KẾT QUẢ: {{ books|length }} ĐẦU SÁCH</span>
+</header>
+
+<div class="split-layout">
+  <form method="get" class="panel sticky-col form-stack">
+    <div class="panel-header">
+      <h2>Bộ lọc danh mục</h2>
+      <span class="section-index">FILTER</span>
+    </div>
+    <label>
+      Từ khóa tìm kiếm
+      <input name="q" value="{{ q }}" placeholder="Tên, mã sách, tác giả, nhà xuất bản">
+    </label>
+    <label>
+      Chuyên mục phân loại
+      <select name="category">
+        <option value="">Tất cả thể loại</option>
+        {% for c in categories %}
+        <option value="{{ c.id }}" {% if category == c.id %}selected{% endif %}>{{ c.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="check">
+      <input type="checkbox" name="available" value="1" {% if available_only %}checked{% endif %}>
+      Chỉ hiển thị sách còn sẵn trong kho
+    </label>
+    <div class="actions" style="margin-top: 6px;">
+      <button style="flex: 1;">Áp dụng bộ lọc</button>
+      <a class="btn secondary" href="{{ url_for('catalog') }}">Đặt lại</a>
+    </div>
+  </form>
+
+  <section class="panel">
+    <div class="panel-header">
+      <h2>Danh mục ấn phẩm lưu trữ</h2>
+      <span class="section-index">{{ books|length }} RECORDS</span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 90px;">Mã định danh</th>
+          <th>Nhan đề sách</th>
+          <th>Tác giả</th>
+          <th>Thể loại</th>
+          <th style="width: 120px;">Tồn kho</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in books %}
+        <tr>
+          <td><span class="code-cell">{{ b.code }}</span></td>
+          <td><a href="{{ url_for('book_detail', id=b.id) }}">{{ b.title }}</a></td>
+          <td>{{ b.author }}</td>
+          <td>{{ b.category or 'Chưa phân loại' }}</td>
+          <td>
+            <span class="tag {% if b.available == 0 %}bad{% endif %}">{{ b.available }} / {{ b.quantity }}</span>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="5" class="empty-state">Không tìm thấy đầu sách nào khớp với điều kiện lọc.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+{% endblock %}

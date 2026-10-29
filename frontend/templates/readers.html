@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block content %}
+<header class="page-header">
+  <div>
+    <span class="page-kicker">06 // PATRON DIRECTORY &amp; MEMBERSHIP</span>
+    <h1>Hồ sơ độc giả</h1>
+  </div>
+  <div class="actions">
+    <a class="btn secondary" href="{{ url_for('export_csv', kind='readers') }}">⬇ Xuất CSV độc giả</a>
+  </div>
+</header>
+
+<div class="split-layout">
+  <form method="post" class="panel sticky-col form-stack">
+    <div class="panel-header">
+      <h2>Đăng ký thẻ độc giả</h2>
+      <span class="section-index">NEW PATRON</span>
+    </div>
+    <label>
+      Mã thẻ độc giả
+      <input name="code" class="mono" required placeholder="Ví dụ: DG003">
+    </label>
+    <label>
+      Họ và tên
+      <input name="name" required placeholder="Họ tên đầy đủ">
+    </label>
+    <label>
+      Ngày sinh
+      <input type="date" name="dob">
+    </label>
+    <label>
+      Số điện thoại liên hệ
+      <input name="phone" class="mono" placeholder="09xxxxxxxx">
+    </label>
+    <label>
+      Địa chỉ thư điện tử (Email)
+      <input name="email" type="email" placeholder="ten@domain.com">
+    </label>
+    <label>
+      Địa chỉ thường trú / Đơn vị
+      <input name="address" placeholder="Số nhà, đường, tỉnh/thành phố">
+    </label>
+    <button style="margin-top: 6px;">Cấp hồ sơ độc giả</button>
+  </form>
+
+  <section class="panel">
+    <div class="panel-header">
+      <h2>Danh bạ độc giả đã đăng ký</h2>
+      <span class="section-index">{{ readers|length }} MEMBERS</span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 90px;">Mã thẻ</th>
+          <th>Họ và tên</th>
+          <th>Điện thoại</th>
+          <th>Email</th>
+          <th style="width: 150px;">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in readers %}
+        <tr>
+          <td><span class="code-cell">{{ r.code }}</span></td>
+          <td style="font-weight: 600;">{{ r.name }}</td>
+          <td class="mono">{{ r.phone or '—' }}</td>
+          <td>{{ r.email or '—' }}</td>
+          <td>
+            <div class="actions">
+              <a class="btn secondary btn-sm" href="{{ url_for('edit_reader', id=r.id) }}">Sửa</a>
+              <form method="post" action="{{ url_for('delete_reader', id=r.id) }}" onsubmit="return confirm('Xóa độc giả?')">
+                <button class="danger btn-sm">Xóa</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="5" class="empty-state">Chưa có hồ sơ độc giả nào.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+{% endblock %}
