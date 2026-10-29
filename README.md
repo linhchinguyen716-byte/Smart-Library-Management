@@ -1,64 +1,61 @@
-# Smart Library — Hệ thống Quản trị Thư viện Thông minh
-
-Hệ thống quản lý thư viện hiện đại với kiến trúc phân tách rõ ràng giữa **Backend (Flask + SQLite)**, **Server-Side Rendered Frontend (Jinja2 Templates)** và **Single Page Application (React 19 + Vite)**.
-
+# Smart Library — Hệ thống Quản lý Thư viện Thông minh
 ---
 
 ## 1. Kiến trúc thư mục (Repository Architecture)
 
 ```text
 Smart-Library-Management/
-├── backend/                       # Backend lõi (Flask + SQLite)
-│   ├── api/                       # Phân hệ RESTful JSON API (/api/*)
-│   │   ├── common.py              # Tiện ích JSON, decorators phân quyền, CSRF/Origin guard
-│   │   ├── auth.py                # API phiên đăng nhập, đăng ký, đăng xuất
-│   │   ├── catalog.py             # API quản lý sách & thể loại
-│   │   ├── people.py              # API quản lý độc giả & nhân viên
-│   │   ├── circulation.py         # API mượn, trả, gia hạn, đặt trước, cảnh báo
-│   │   ├── analytics.py           # API tổng quan, báo cáo thống kê, nhật ký
-│   │   └── reader_portal.py       # API không gian độc giả cá nhân
-│   ├── routes/                    # Web SSR Routes (Jinja2 Rendered)
-│   │   ├── auth.py                # Điều hướng đăng nhập Admin & Độc giả
-│   │   ├── dashboard.py           # Bảng điều khiển tổng quan
-│   │   ├── catalog.py             # Quản lý kho sách, thể loại, QR Code, máy quét
-│   │   ├── people.py              # Quản lý hồ sơ độc giả & nhân sự
-│   │   ├── loans.py               # Quản lý mượn/trả, gia hạn, lịch sử, quá hạn
-│   │   ├── reservations.py        # Quản lý hàng chờ đặt trước
-│   │   ├── alerts.py              # Cảnh báo hạn trả & nhắc nhở
-│   │   ├── reports.py             # Thống kê, xuất CSV, nhật ký kiểm toán
-│   │   └── api.py                 # Module liên kết API phục vụ SPA
-│   ├── config.py                  # Cấu hình đường dẫn, biến môi trường, bí mật
-│   ├── database.py                # Quản lý kết nối SQLite & khởi tạo bảng / seed data
-│   ├── middleware.py              # Phân quyền (login_required, reader_required) & audit logs
-│   ├── core.py                    # Khởi tạo Flask App & cấu hình nạp template đa thư mục
-│   └── app.py                     # Entrypoint module của backend
-│
-├── frontend/                      # Giao diện Server-Side Rendering (Flask Jinja2)
-│   ├── static/                    # Tệp tĩnh (CSS hệ thống, phong cách biên tập)
+├── backend/
+│   ├── api/
+│   │   ├── analytics.py
+│   │   ├── auth.py
+│   │   ├── catalog.py
+│   │   ├── circulation.py
+│   │   ├── common.py
+│   │   ├── people.py
+│   │   └── reader_portal.py
+│   ├── routes/
+│   │   ├── alerts.py
+│   │   ├── api.py
+│   │   ├── auth.py
+│   │   ├── catalog.py
+│   │   ├── dashboard.py
+│   │   ├── loans.py
+│   │   ├── people.py
+│   │   ├── reports.py
+│   │   └── reservations.py
+│   ├── app.py
+│   ├── config.py
+│   ├── core.py
+│   ├── database.py
+│   └── middleware.py
+├── frontend/
+│   ├── static/
 │   │   └── style.css
-│   └── templates/                 # Giao diện HTML Jinja2 phân nhóm theo vai trò
-│       ├── layouts/               # Khung bố cục (base.html, user_base.html)
-│       ├── auth/                  # Màn hình xác thực (login, user_login, user_register)
-│       ├── admin/                 # 18 màn hình quản trị dành cho thủ thư/admin
-│       └── reader/                # Màn hình không gian cá nhân của độc giả (user_home)
-│
-├── react-frontend/                # Giao diện Single Page Application (React 19 + Vite)
+│   └── templates/
+│       ├── admin/
+│       ├── auth/
+│       ├── layouts/
+│       └── reader/
+├── react-frontend/
 │   ├── src/
-│   │   ├── services/api.js        # HTTP client kết nối trực tiếp đến backend /api
-│   │   ├── hooks/useData.js       # Custom hook lấy và đồng bộ dữ liệu
-│   │   ├── components/ui/         # Các thành phần giao diện dùng chung (Header, Panel, Table, Modal...)
-│   │   ├── pages/                 # Các trang nghiệp vụ React độc lập
-│   │   ├── App.jsx                # Shell ứng dụng và điều hướng
-│   │   ├── main.jsx               # Điểm gắn kết DOM
-│   │   └── style.css              # Giao diện React SPA
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── pages/
+│   │   ├── services/
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   │   └── style.css
 │   ├── package.json
-│   └── vite.config.js             # Cấu hình Vite Dev Server & Reverse Proxy (/api -> :5001)
-│
-├── library.db                     # Cơ sở dữ liệu SQLite chính
-├── library-backup.db              # Bản sao lưu an toàn của cơ sở dữ liệu
-├── requirements.txt               # Danh sách thư viện Python
-├── run.py                         # File khởi động chính của ứng dụng
-└── README.md                      # Tài liệu hướng dẫn dự án
+│   ├── vite.config.js
+│   └── README.md
+├── .env.example
+├── .gitignore
+├── library.db
+├── library-backup.db
+├── README.md
+├── requirements.txt
+└── run.py
 ```
 
 ---
@@ -95,9 +92,14 @@ npm run dev
 
 ## 3. Các cổng truy cập (Web Portals)
 
-- **Cổng Quản trị viên / Thủ thư:** `http://127.0.0.1:5001/admin/login` (hoặc `/login`)
-- **Cổng Độc giả Đăng nhập:** `http://127.0.0.1:5001/user/login`
-- **Cổng Độc giả Đăng ký:** `http://127.0.0.1:5001/user/register`
+- **Trang chủ Tra cứu cộng đồng:** `http://127.0.0.1:5001/` (Khách và độc giả xem & tìm kiếm sách trực tiếp không cần đăng nhập).
+- **Cổng Độc giả:**
+  - Đăng nhập: `http://127.0.0.1:5001/user/login`
+  - Đăng ký thẻ: `http://127.0.0.1:5001/user/register`
+  - Không gian cá nhân: `http://127.0.0.1:5001/user`
+- **Cổng Quản trị viên / Thủ thư:**
+  - Đăng nhập quản trị: `http://127.0.0.1:5001/admin/login` (hoặc `/login`)
+  - Bảng điều khiển trung tâm: `http://127.0.0.1:5001/dashboard` (hoặc `/admin`)
 - **Giao diện React SPA:** `http://127.0.0.1:5173`
 
 ### Tài khoản quản trị & Bảo mật
@@ -121,6 +123,6 @@ npm run dev
 
 ## 5. Lưu ý khi triển khai thực tế (Production Readiness)
 
-- **Bí mật & Môi trường:** Đặt biến môi trường `SECRET_KEY` bằng khóa ngẫu nhiên dài trước khi đưa lên môi trường mạng.
+- **Bí mật & Môi trường:** Sao chép file `.env.example` thành `.env` và đặt biến môi trường `SECRET_KEY` bằng khóa ngẫu nhiên dài trước khi đưa lên môi trường mạng.
 - **Mạng cục bộ (LAN) & Camera:** Khi dùng camera quét mã QR qua điện thoại/máy tính bảng trong mạng LAN, trình duyệt yêu cầu kết nối an toàn qua giao thức **HTTPS**.
-- **Bảo sao lưu:** Luôn tạo bản sao lưu định kỳ cho file `library.db` trước khi thực hiện nâng cấp schema hoặc di chuyển dữ liệu.
+- **Bản sao lưu:** Luôn tạo bản sao lưu định kỳ cho file `library.db` trước khi thực hiện nâng cấp schema hoặc di chuyển dữ liệu.

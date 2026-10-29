@@ -1,42 +1,108 @@
+# ==============================================================================
 # Python & Bytecode
+# ==============================================================================
 __pycache__/
 *.py[cod]
 *$py.class
-*.sqlite3
+*.so
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# Virtual Environments
+# ==============================================================================
+# Python Virtual Environments
+# ==============================================================================
 venv/
 .venv/
 env/
 ENV/
+env.bak/
+venv.bak/
 
-# Environment Variables & Secrets
-.env
-.env.*
-!.env.example
-reset_admin_password.py
-
-# Node & Frontend Build Artifacts
+# ==============================================================================
+# Node & Frontend Build Artifacts (Vite / React)
+# ==============================================================================
 node_modules/
+**/node_modules/
 dist/
+**/dist/
 dist-ssr/
-*.local
 .vite/
-
-# Logs & Temporary Files
-*.log
+*.local
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-*.tmp
+pnpm-debug.log*
 
-# Testing & Coverage
+# ==============================================================================
+# Databases & Local SQLite
+# ==============================================================================
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+# Note: library.db & library-backup.db are tracked as default sample data
+
+# ==============================================================================
+# Environment Variables & Secrets
+# ==============================================================================
+.env
+.env.*
+!.env.example
+!.env.template
+reset_admin_password.py
+
+# ==============================================================================
+# Testing, Coverage & Linters
+# ==============================================================================
 .pytest_cache/
 .coverage
+.coverage.*
 htmlcov/
+.mypy_cache/
+.pytype/
+.ruff_cache/
+.eslintcache
 
-# Editor & OS Artifacts
-.vscode/
+# ==============================================================================
+# Logs & Temporary Files
+# ==============================================================================
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# ==============================================================================
+# IDE & Code Editors
+# ==============================================================================
 .idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# ==============================================================================
+# Operating System Artifacts (Windows & macOS)
+# ==============================================================================
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
 Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
