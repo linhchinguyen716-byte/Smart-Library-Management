@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block content %}
+<header class="page-header">
+  <div>
+    <span class="page-kicker">04.2 // EDIT BIBLIOGRAPHIC RECORD</span>
+    <h1>Hiệu đính thông tin sách</h1>
+  </div>
+  <a class="btn secondary" href="{{ url_for('books') }}">← Quay lại danh mục</a>
+</header>
+
+<div class="split-layout">
+  <section class="panel panel-subtle sticky-col">
+    <div class="panel-header">
+      <h2>Trạng thái hiện hành</h2>
+      <span class="code-cell">{{ book.code }}</span>
+    </div>
+    <p class="muted">Việc điều chỉnh tổng số lượng bản sách sẽ tự động đối soát với số lượng đang được độc giả mượn để bảo toàn tính toàn vẹn tồn kho.</p>
+    <dl class="spec-list" style="margin-bottom: 0;">
+      <dt>Tổng số bản</dt>
+      <dd class="mono">{{ book.quantity }}</dd>
+      <dt>Khả dụng trong kho</dt>
+      <dd class="mono">{{ book.available }}</dd>
+      <dt>Đang cho mượn</dt>
+      <dd class="mono">{{ book.quantity - book.available }}</dd>
+    </dl>
+  </section>
+
+  <form method="post" class="panel form-stack">
+    <div class="panel-header">
+      <h2>Biểu mẫu cập nhật</h2>
+      <span class="section-index">ID #{{ book.id }}</span>
+    </div>
+    <div class="formgrid">
+      <label>
+        Mã sách
+        <input name="code" class="mono" value="{{ book.code }}" required>
+      </label>
+      <label>
+        Tên sách
+        <input name="title" value="{{ book.title }}" required>
+      </label>
+      <label>
+        Tác giả
+        <input name="author" value="{{ book.author }}" required>
+      </label>
+      <label>
+        Nhà xuất bản
+        <input name="publisher" value="{{ book.publisher or '' }}">
+      </label>
+      <label>
+        Năm xuất bản
+        <input type="number" name="year" value="{{ book.year or '' }}">
+      </label>
+      <label>
+        Thể loại
+        <select name="category_id">
+          <option value="">Không phân loại</option>
+          {% for c in categories %}
+          <option value="{{ c.id }}" {% if book.category_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        Tổng số lượng
+        <input type="number" name="quantity" min="0" value="{{ book.quantity }}" required>
+      </label>
+    </div>
+    <div class="actions" style="margin-top: 10px;">
+      <button>Lưu thay đổi</button>
+      <a class="btn secondary" href="{{ url_for('books') }}">Hủy bỏ</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

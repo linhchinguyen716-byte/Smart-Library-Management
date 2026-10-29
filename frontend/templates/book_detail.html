@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block content %}
+<header class="page-header">
+  <div>
+    <span class="page-kicker">04.1 // BIBLIOGRAPHIC RECORD &amp; QR LABEL</span>
+    <h1>Thông tin sách &amp; nhãn định danh QR</h1>
+  </div>
+  <div class="actions">
+    <a class="btn secondary" href="{{ url_for('books') }}">← Về danh sách</a>
+    <a class="btn" href="{{ url_for('edit_book', id=book.id) }}">Chỉnh sửa hồ sơ</a>
+  </div>
+</header>
+
+<div class="book-info">
+  <section class="panel">
+    <div class="panel-header">
+      <h2>{{ book.title }}</h2>
+      <span class="code-cell">{{ book.code }}</span>
+    </div>
+    <dl class="spec-list">
+      <dt>Mã định danh</dt>
+      <dd class="mono">{{ book.code }}</dd>
+      <dt>Tác giả</dt>
+      <dd>{{ book.author }}</dd>
+      <dt>Nhà xuất bản</dt>
+      <dd>{{ book.publisher or 'Chưa cập nhật' }}</dd>
+      <dt>Chuyên mục</dt>
+      <dd>{{ book.category or 'Chưa phân loại' }}</dd>
+      <dt>Năm xuất bản</dt>
+      <dd class="mono">{{ book.year or '—' }}</dd>
+      <dt>Trạng thái kho</dt>
+      <dd>
+        <span class="tag {% if book.available == 0 %}bad{% endif %}">{{ book.available }} / {{ book.quantity }} bản khả dụng</span>
+      </dd>
+      <dt>Hàng chờ đặt trước</dt>
+      <dd class="mono">{{ waiting }} yêu cầu đang chờ</dd>
+    </dl>
+  </section>
+
+  <aside class="qrprint">
+    <span class="page-kicker">ARCHIVAL LABEL // {{ book.code }}</span>
+    <h2 style="margin-bottom: 4px;">{{ book.title }}</h2>
+    <p class="muted" style="font-size: 12px; margin-bottom: 8px;">{{ book.author }}</p>
+    <div class="qr-frame">
+      <img alt="QR {{ book.code }}" src="{{ url_for('book_qr', id=book.id) }}" width="210" height="210">
+    </div>
+    <p style="font-size: 13px; font-weight: 500; margin-bottom: 6px;">Quét mã QR để truy xuất trực tiếp hồ sơ ấn phẩm</p>
+    <p class="muted" style="font-size: 12px; margin-bottom: 16px;">Để thiết bị di động mở được liên kết QR, hãy truy cập máy chủ Flask qua địa chỉ IP mạng LAN thay vì 127.0.0.1.</p>
+    <button onclick="window.print()">In nhãn lưu trữ QR</button>
+  </aside>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.db
+*.sqlite3
+.env
+.env.*
+!.env.example
+venv/
+.venv/
+reset_admin_password.py
+.vscode/
