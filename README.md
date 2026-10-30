@@ -102,9 +102,14 @@ npm run dev
   - Bảng điều khiển trung tâm: `http://127.0.0.1:5001/dashboard` (hoặc `/admin`)
 - **Giao diện React SPA:** `http://127.0.0.1:5173`
 
-### Tài khoản quản trị & Bảo mật
-- **Database hiện tại:** Tài khoản quản trị có sẵn là `admin`, mật khẩu tự động băm an toàn (`pbkdf2:sha256` / `scrypt`) ngay trong lần đăng nhập đầu tiên.
-- **Khởi tạo database mới:** Đặt biến môi trường `INITIAL_ADMIN_PASSWORD` trước khi chạy (ví dụ trên PowerShell: `$env:INITIAL_ADMIN_PASSWORD='MatKhauManhCuaBan2026!'`).
+### Tài khoản đăng nhập sẵn có (Mặc định)
+
+| Vai trò | Tên đăng nhập (Username) | Mật khẩu (Password) | Đường dẫn đăng nhập |
+| :--- | :--- | :--- | :--- |
+| **Quản trị viên (Admin)** | `admin` | `admin123` | `http://127.0.0.1:5001/admin/login` |
+| **Độc giả (User)** | `user` | `user123` | `http://127.0.0.1:5001/user/login` |
+
+> *Ghi chú:* Ngoài tài khoản độc giả mẫu ở trên, bạn có thể tự đăng ký thêm tài khoản độc giả mới bất kỳ lúc nào tại `http://127.0.0.1:5001/user/register`. Mật khẩu được băm an toàn theo chuẩn `pbkdf2:sha256` / `scrypt`.
 
 ---
 

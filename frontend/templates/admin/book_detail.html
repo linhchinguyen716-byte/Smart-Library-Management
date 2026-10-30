@@ -28,7 +28,7 @@
       <dd>{{ book.category or 'Chưa phân loại' }}</dd>
       <dt>Năm xuất bản</dt>
       <dd class="mono">{{ book.year or '—' }}</dd>
-      <dt>Trạng thái kho</dt>
+      <dt>Tình trạng sách</dt>
       <dd>
         <span class="tag {% if book.available == 0 %}bad{% endif %}">{{ book.available }} / {{ book.quantity }} bản khả dụng</span>
       </dd>

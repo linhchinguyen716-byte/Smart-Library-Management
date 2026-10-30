@@ -14,11 +14,11 @@
       <h2>Trạng thái hiện hành</h2>
       <span class="code-cell">{{ book.code }}</span>
     </div>
-    <p class="muted">Việc điều chỉnh tổng số lượng bản sách sẽ tự động đối soát với số lượng đang được độc giả mượn để bảo toàn tính toàn vẹn tồn kho.</p>
+    <p class="muted">Việc điều chỉnh tổng số lượng bản sách sẽ tự động đối soát với số lượng đang được độc giả mượn để bảo toàn số lượng sách khả dụng của thư viện.</p>
     <dl class="spec-list" style="margin-bottom: 0;">
       <dt>Tổng số bản</dt>
       <dd class="mono">{{ book.quantity }}</dd>
-      <dt>Khả dụng trong kho</dt>
+      <dt>Bản sách khả dụng</dt>
       <dd class="mono">{{ book.available }}</dd>
       <dt>Đang cho mượn</dt>
       <dd class="mono">{{ book.quantity - book.available }}</dd>

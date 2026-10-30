@@ -4,7 +4,7 @@
   <div>
     <span class="page-kicker">Cổng tra cứu cộng đồng</span>
     <h1>Tra cứu &amp; Danh mục ấn phẩm Thư viện</h1>
-    <p class="muted" style="margin-top: 6px; font-size: 14px;">Khám phá kho tri thức, kiểm tra tình trạng tồn kho thời gian thực và đăng ký mượn / đặt trước ấn phẩm.</p>
+    <p class="muted" style="margin-top: 6px; font-size: 14px;">Khám phá kho tri thức, kiểm tra tình trạng sách khả dụng thời gian thực và đăng ký mượn / đặt trước ấn phẩm.</p>
   </div>
   <div class="actions">
     {% if not session.get('reader_id') and not session.get('employee_id') %}
@@ -33,7 +33,7 @@
     </label>
     <label class="check">
       <input type="checkbox" name="available" value="1" {% if available_only %}checked{% endif %}>
-      Chỉ hiển thị sách còn sẵn trong kho
+      Chỉ hiển thị sách đang có sẵn
     </label>
     <div class="actions" style="margin-top: 8px;">
       <button type="submit" class="btn primary" style="flex: 1;">Tìm kiếm</button>
@@ -56,7 +56,7 @@
             <th>Nhan đề ấn phẩm</th>
             <th>Tác giả</th>
             <th>Thể loại</th>
-            <th style="width: 120px;">Trạng thái kho</th>
+            <th style="width: 120px;">Tình trạng sách</th>
             <th style="width: 150px; text-align: right;">Hành động</th>
           </tr>
         </thead>
