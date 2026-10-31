@@ -2,45 +2,259 @@
 {% block content %}
 <header class="page-header">
   <div>
-    <div class="page-breadcrumb">TRA CỨU / QUÉT MÃ</div>
-    <h1>Quét và tìm mã sách</h1>
+    <span class="page-kicker">Truy xuất &amp; Nhận diện</span>
+    <h1>Quét và tìm kiếm ấn phẩm</h1>
   </div>
   <a class="btn secondary" href="{{ url_for('books') }}">Quản lý đầu sách →</a>
 </header>
 
 <div class="split-layout-wide">
+  <!-- Cột 1: Nhập mã thủ công hoặc dùng súng quét mã vạch USB -->
   <section class="panel sticky-col">
     <div class="panel-header">
-      <h2>Nhập mã sách thủ công / Máy quét USB</h2>
+      <h2>Đầu đọc USB / Nhập mã thủ công</h2>
     </div>
-    <p class="muted">Nhập mã định danh hoặc dùng đầu đọc mã vạch USB để mở nhanh trang chi tiết ấn phẩm:</p>
+    <p class="muted">Hỗ trợ nhập trực tiếp mã sách (ví dụ <code>S001</code>), số ID, hoặc dùng đầu đọc mã vạch / mã QR USB quét thẳng vào ô bên dưới:</p>
     <form action="{{ url_for('scan_find') }}" method="post" class="form-stack" style="margin-top: 14px;">
       <label>
-        Mã định danh sách
-        <input autofocus name="code" class="mono" placeholder="Ví dụ: S001" required>
+        Mã ấn phẩm hoặc URL quét được
+        <input autofocus name="code" class="mono" placeholder="Ví dụ: S001 hoặc quét QR..." required autocomplete="off">
       </label>
-      <button>Tìm sách ngay</button>
+      <button type="submit" class="btn primary" style="width: 100%;">Truy xuất hồ sơ ấn phẩm</button>
     </form>
+    
+    <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+      <h3 style="font-size: 13px; margin-bottom: 8px;">Tải ảnh chụp mã QR từ máy</h3>
+      <p class="muted" style="font-size: 12px; margin-bottom: 10px;">Nếu thiết bị không có webcam hoặc camera bị hạn chế, bạn có thể tải lên ảnh chụp mã QR:</p>
+      <input type="file" id="qrFileInput" accept="image/*" style="display: none;">
+      <button type="button" class="btn secondary btn-sm" onclick="document.getElementById('qrFileInput').click();" style="width: 100%;">
+        📁 Chọn file ảnh mã QR
+      </button>
+    </div>
   </section>
 
+  <!-- Cột 2: Quét mã QR trực tiếp qua Camera / Webcam -->
   <section class="panel">
     <div class="panel-header">
-      <h2>Quét mã QR qua Camera</h2>
+      <h2>Quét mã QR qua Camera / Webcam</h2>
+      <span class="tag neutral" id="engineTag">Sẵn sàng</span>
     </div>
-    <p id="status" class="muted">Yêu cầu quyền truy cập camera trên trình duyệt hỗ trợ BarcodeDetector. Kết nối localhost hoặc mạng nội bộ qua giao thức HTTPS.</p>
-    <div class="actions" style="margin: 12px 0;">
-      <button id="go" type="button">Bật camera</button>
-      <button id="stop" class="secondary" type="button">Tắt camera</button>
+    <p id="status" class="muted">Hệ thống hỗ trợ quét thời gian thực qua webcam và camera điện thoại (hỗ trợ mọi trình duyệt Chrome, Edge, Firefox, Safari).</p>
+    
+    <div class="actions" style="margin: 14px 0;">
+      <button id="go" type="button" class="btn primary">Bật camera</button>
+      <button id="stop" class="btn secondary" type="button" disabled>Tắt camera</button>
     </div>
-    <video id="video" autoplay playsinline muted style="width:100%;max-width:440px;border-radius:4px;border:1px solid var(--border-color);background:#0F172A;margin-top:8px;display:block;"></video>
+
+    <!-- Khung hiển thị Camera -->
+    <div style="position: relative; width: 100%; max-width: 480px; margin-top: 10px; border-radius: 6px; overflow: hidden; background: #0F172A;">
+      <video id="video" autoplay playsinline muted style="width: 100%; height: auto; display: block; border-radius: 6px;"></video>
+      <canvas id="qrCanvas" style="display: none;"></canvas>
+      
+      <!-- Khung ngắm ảo định vị mã QR -->
+      <div id="viewfinder" style="display: none; position: absolute; inset: 0; pointer-events: none; border: 2px dashed rgba(15, 118, 110, 0.8); margin: 30px; border-radius: 8px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35);">
+        <div style="position: absolute; bottom: 8px; left: 0; right: 0; text-align: center; color: #fff; font-size: 12px; font-weight: 500; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">
+          Hướng mã QR vào giữa khung hình
+        </div>
+      </div>
+    </div>
   </section>
 </div>
 
+<!-- Nạp thư viện jsQR từ file nội bộ đã lưu kèm dự phòng CDN -->
+<script src="{{ url_for('static', filename='jsqr.min.js') }}"></script>
 <script>
-const video=document.getElementById('video'),statusEl=document.getElementById('status');let stream=null,active=false;
-async function stop(){active=false;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}video.srcObject=null;}
-document.getElementById('stop').onclick=stop;
-document.getElementById('go').onclick=async()=>{if(!('BarcodeDetector' in window)){statusEl.textContent='Trình duyệt không hỗ trợ BarcodeDetector. Bạn có thể dùng camera điện thoại quét nhãn QR hoặc nhập mã ở ô bên trái.';return;}try{let detector=new BarcodeDetector({formats:['qr_code']});stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});video.srcObject=stream;active=true;statusEl.textContent='Đang tìm mã QR...';while(active){if(video.readyState>=2){let codes=await detector.detect(video);if(codes.length){const raw=codes[0].rawValue;let u;try{u=new URL(raw,location.origin)}catch(e){}if(u&&u.origin===location.origin&&/^\/books\/view\/\d+$/.test(u.pathname)){await stop();location.href=u.href;return;}statusEl.textContent='Mã QR không thuộc hệ thống thư viện này.';}}await new Promise(r=>setTimeout(r,250));}}catch(e){statusEl.textContent='Không thể mở camera: '+e.message;await stop();}};
-window.addEventListener('pagehide',stop);
+if (typeof jsQR === 'undefined') {
+  document.write('<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"><\/script>');
+}
+</script>
+
+<script>
+(function() {
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('qrCanvas');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  const statusEl = document.getElementById('status');
+  const engineTag = document.getElementById('engineTag');
+  const btnGo = document.getElementById('go');
+  const btnStop = document.getElementById('stop');
+  const viewfinder = document.getElementById('viewfinder');
+  const fileInput = document.getElementById('qrFileInput');
+  
+  let stream = null;
+  let active = false;
+  let animationId = null;
+
+  // Điều hướng khi quét được mã QR
+  function handleDetectedCode(rawText) {
+    if (!rawText) return;
+    const text = rawText.trim();
+    statusEl.innerHTML = '<strong style="color: var(--primary);">✓ Đã nhận diện: ' + text + '</strong>. Đang truy xuất hồ sơ...';
+    engineTag.textContent = 'Thành công';
+    engineTag.className = 'tag good';
+
+    // 1. Nếu mã QR là URL chứa /books/view/<id>
+    const match = text.match(/\/books\/view\/(\d+)/);
+    if (match) {
+      setTimeout(() => {
+        location.href = '/books/view/' + match[1];
+      }, 350);
+      return;
+    }
+
+    // 2. Chuyển tiếp tới endpoint scan_find để tự động phân tích
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = "{{ url_for('scan_find') }}";
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'code';
+    input.value = text;
+    form.appendChild(input);
+    document.body.appendChild(form);
+    setTimeout(() => {
+      form.submit();
+    }, 350);
+  }
+
+  // Tắt camera
+  async function stopCamera() {
+    active = false;
+    if (animationId) {
+      cancelAnimationFrame(animationId);
+      animationId = null;
+    }
+    if (stream) {
+      stream.getTracks().forEach(t => t.stop());
+      stream = null;
+    }
+    video.srcObject = null;
+    viewfinder.style.display = 'none';
+    btnGo.disabled = false;
+    btnStop.disabled = true;
+    engineTag.textContent = 'Đã tắt';
+    engineTag.className = 'tag neutral';
+    statusEl.textContent = 'Camera đã tắt. Bấm "Bật camera" hoặc chọn file ảnh để tiếp tục.';
+  }
+
+  // Vòng lặp giải mã frame bằng jsQR hoặc BarcodeDetector
+  async function scanFrame() {
+    if (!active) return;
+
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Cách 1: Dùng BarcodeDetector nếu có
+      if ('BarcodeDetector' in window) {
+        try {
+          const detector = new BarcodeDetector({ formats: ['qr_code'] });
+          const barcodes = await detector.detect(canvas);
+          if (barcodes.length > 0 && barcodes[0].rawValue) {
+            await stopCamera();
+            handleDetectedCode(barcodes[0].rawValue);
+            return;
+          }
+        } catch (e) {
+          // Bỏ qua lỗi và chuyển tiếp xuống jsQR
+        }
+      }
+
+      // Cách 2: Dùng jsQR (chạy ổn định 100% trên mọi trình duyệt)
+      if (typeof jsQR !== 'undefined') {
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: 'dontInvert'
+        });
+        if (code && code.data) {
+          await stopCamera();
+          handleDetectedCode(code.data);
+          return;
+        }
+      }
+    }
+
+    if (active) {
+      animationId = requestAnimationFrame(scanFrame);
+    }
+  }
+
+  // Bật camera
+  async function startCamera() {
+    await stopCamera();
+    statusEl.textContent = 'Đang khởi động camera...';
+    engineTag.textContent = 'Đang kết nối';
+    engineTag.className = 'tag warn';
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      statusEl.textContent = 'Trình duyệt không hỗ trợ truy cập camera hoặc đang chạy ở môi trường HTTP không an toàn. Vui lòng dùng nút "Chọn file ảnh mã QR" bên trái.';
+      return;
+    }
+
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+      });
+      video.srcObject = stream;
+      await video.play();
+
+      active = true;
+      viewfinder.style.display = 'block';
+      btnGo.disabled = true;
+      btnStop.disabled = false;
+      engineTag.textContent = 'Đang quét';
+      engineTag.className = 'tag good';
+      statusEl.textContent = 'Camera đang hoạt động. Hướng mã QR của ấn phẩm vào giữa khung hình...';
+
+      animationId = requestAnimationFrame(scanFrame);
+    } catch (err) {
+      statusEl.textContent = 'Không thể mở camera: ' + (err.message || 'Chưa cấp quyền camera') + '. Bạn có thể sử dụng nút "Chọn file ảnh mã QR" để nhận diện ảnh chụp.';
+      engineTag.textContent = 'Lỗi camera';
+      engineTag.className = 'tag bad';
+      await stopCamera();
+    }
+  }
+
+  // Xử lý khi người dùng chọn file ảnh QR từ thiết bị
+  fileInput.addEventListener('change', function(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    statusEl.textContent = 'Đang xử lý ảnh: ' + file.name + '...';
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      const img = new Image();
+      img.onload = function() {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0, img.width, img.height);
+
+        let decoded = null;
+        if (typeof jsQR !== 'undefined') {
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const result = jsQR(imageData.data, imageData.width, imageData.height);
+          if (result && result.data) {
+            decoded = result.data;
+          }
+        }
+
+        if (decoded) {
+          handleDetectedCode(decoded);
+        } else {
+          statusEl.textContent = 'Không tìm thấy mã QR trong bức ảnh vừa chọn. Vui lòng thử lại với ảnh rõ nét hơn.';
+          engineTag.textContent = 'Ảnh không hợp lệ';
+          engineTag.className = 'tag bad';
+        }
+      };
+      img.src = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  btnGo.addEventListener('click', startCamera);
+  btnStop.addEventListener('click', stopCamera);
+  window.addEventListener('pagehide', stopCamera);
+})();
 </script>
 {% endblock %}

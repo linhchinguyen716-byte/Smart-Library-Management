@@ -6,8 +6,20 @@
     <h1>Thông tin sách &amp; nhãn định danh QR</h1>
   </div>
   <div class="actions">
-    <a class="btn secondary" href="{{ url_for('books') }}">← Về danh sách</a>
+    {% if session.get('employee_id') %}
+    <a class="btn secondary" href="{{ url_for('books') }}">← Về danh sách kho</a>
     <a class="btn primary" href="{{ url_for('edit_book', id=book.id) }}">Chỉnh sửa hồ sơ</a>
+    {% elif session.get('reader_id') %}
+    <a class="btn secondary" href="{{ url_for('home') }}">← Về trang chủ</a>
+    {% if book.available == 0 %}
+    <form method="post" action="{{ url_for('user_reserve', book_id=book.id) }}" style="display:inline-block;">
+      <button type="submit" class="btn primary">Đặt trước sách</button>
+    </form>
+    {% endif %}
+    {% else %}
+    <a class="btn secondary" href="{{ url_for('home') }}">← Về trang chủ</a>
+    <a class="btn primary" href="{{ url_for('user_login') }}">Đăng nhập để đặt mượn</a>
+    {% endif %}
   </div>
 </header>
 
@@ -30,7 +42,7 @@
       <dd class="mono">{{ book.year or '—' }}</dd>
       <dt>Tình trạng sách</dt>
       <dd>
-        <span class="tag {% if book.available == 0 %}bad{% endif %}">{{ book.available }} / {{ book.quantity }} bản khả dụng</span>
+        <span class="tag {% if book.available == 0 %}bad{% else %}good{% endif %}">{{ book.available }} / {{ book.quantity }} bản khả dụng</span>
       </dd>
       <dt>Hàng chờ đặt trước</dt>
       <dd class="mono">{{ waiting }} yêu cầu đang chờ</dd>
@@ -42,11 +54,37 @@
     <h2 style="margin-bottom: 4px;">{{ book.title }}</h2>
     <p class="muted" style="font-size: 13px; margin-bottom: 10px;">{{ book.author }}</p>
     <div class="qr-frame">
-      <img alt="QR {{ book.code }}" src="{{ url_for('book_qr', id=book.id) }}" width="210" height="210">
+      <img id="qrImg" alt="QR {{ book.code }}" src="{{ url_for('book_qr', id=book.id) }}" width="210" height="210">
     </div>
-    <p style="font-size: 13px; font-weight: 500; margin-bottom: 6px;">Quét mã QR để truy xuất nhanh hồ sơ ấn phẩm</p>
-    <p class="muted" style="font-size: 12px; margin-bottom: 16px;">Để thiết bị di động quét được liên kết, hãy đảm bảo kết nối cùng mạng nội bộ với máy chủ.</p>
+    <div style="font-size: 13px; font-weight: 600; margin: 8px 0 4px;" id="qrLabel">Mã QR chứa liên kết hồ sơ ấn phẩm</div>
+    <p class="muted" style="font-size: 12px; margin-bottom: 14px;">Quét bằng camera điện thoại, webcam hoặc máy quét mã vạch USB để truy xuất nhanh.</p>
+    
+    <div class="actions" style="margin-bottom: 12px; justify-content: center;">
+      <button type="button" class="btn secondary btn-sm" id="btnToggleQr">Chuyển sang QR mã gốc ({{ book.code }})</button>
+    </div>
     <button type="button" class="btn primary" style="width: 100%;" onclick="window.print()">In nhãn lưu trữ QR</button>
   </aside>
 </div>
+
+<script>
+(function() {
+  const qrImg = document.getElementById('qrImg');
+  const btnToggle = document.getElementById('btnToggleQr');
+  const qrLabel = document.getElementById('qrLabel');
+  let isRaw = false;
+
+  btnToggle.addEventListener('click', function() {
+    isRaw = !isRaw;
+    if (isRaw) {
+      qrImg.src = "{{ url_for('book_qr', id=book.id) }}?raw=code";
+      qrLabel.textContent = "Mã QR chứa mã định danh: {{ book.code }}";
+      btnToggle.textContent = "Chuyển sang QR liên kết URL";
+    } else {
+      qrImg.src = "{{ url_for('book_qr', id=book.id) }}";
+      qrLabel.textContent = "Mã QR chứa liên kết hồ sơ ấn phẩm";
+      btnToggle.textContent = "Chuyển sang QR mã gốc ({{ book.code }})";
+    }
+  });
+})();
+</script>
 {% endblock %}

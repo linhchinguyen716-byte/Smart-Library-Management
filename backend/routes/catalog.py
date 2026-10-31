@@ -1,4 +1,5 @@
 """Nhóm chức năng: catalog. Giữ nguyên endpoint để tương thích HTML cũ."""
+import re
 from ..core import *
 
 @app.route("/categories", methods=["GET","POST"])
@@ -132,13 +133,15 @@ def edit_book(id):
 
 
 @app.get("/books/qr/<int:id>.png")
-@login_required
 def book_qr(id):
     with db() as conn:
-        book = conn.execute("SELECT id FROM books WHERE id=?", (id,)).fetchone()
+        book = conn.execute("SELECT id, code FROM books WHERE id=?", (id,)).fetchone()
     if not book:
         abort(404)
-    target = url_for("book_detail", id=id, _external=True)
+    if request.args.get("raw") == "code":
+        target = book["code"]
+    else:
+        target = url_for("book_detail", id=id, _external=True)
     img = qrcode.make(target, image_factory=PilImage, box_size=8, border=3)
     output = io.BytesIO()
     img.save(output, format="PNG")
@@ -146,7 +149,6 @@ def book_qr(id):
 
 
 @app.get("/books/view/<int:id>")
-@login_required
 def book_detail(id):
     with db() as conn:
         book = conn.execute("""SELECT b.*, c.name AS category FROM books b
@@ -166,13 +168,25 @@ def scan_books():
 @app.post("/scan/find")
 @login_required
 def scan_find():
-    code = request.form.get("code", "").strip()
-    # Dùng mã sách khi quét bằng máy quét USB/nhập tay; QR có thể mở URL trực tiếp.
+    raw_code = request.form.get("code", "").strip()
+    book = None
     with db() as conn:
-        book = conn.execute("SELECT id FROM books WHERE code=? COLLATE NOCASE", (code,)).fetchone()
+        # 1. Tr?ch xu?t ID n?u qu?t tr?ng URL (v? d?: http://.../books/view/3 ho?c /books/view/3)
+        match = re.search(r"/books/view/(\d+)", raw_code)
+        if match:
+            book_id = int(match.group(1))
+            book = conn.execute("SELECT id FROM books WHERE id=?", (book_id,)).fetchone()
+
+        # 2. T?m ch?nh x?c theo m? s?ch (code) (v? d?: S001)
+        if not book:
+            clean_code = raw_code.strip(" '\"\t\r\n")
+            book = conn.execute("SELECT id FROM books WHERE code=? COLLATE NOCASE", (clean_code,)).fetchone()
+
+        # 3. T?m theo ID s? nguy?n tr?c ti?p n?u ng??i d?ng nh?p s? ID
+        if not book and raw_code.isdigit():
+            book = conn.execute("SELECT id FROM books WHERE id=?", (int(raw_code),)).fetchone()
+
     if not book:
-        flash("Không tìm thấy mã sách.", "error")
+        flash(f"Kh?ng t?m th?y ?n ph?m t??ng ?ng v?i m?: {raw_code}", "error")
         return redirect(url_for("scan_books"))
     return redirect(url_for("book_detail", id=book["id"]))
-
-
