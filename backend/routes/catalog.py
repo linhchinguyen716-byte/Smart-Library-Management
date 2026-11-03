@@ -157,36 +157,3 @@ def book_detail(id):
             abort(404)
         waiting = conn.execute("""SELECT COUNT(*) FROM reservations WHERE book_id=? AND status='Chờ xử lý'""", (id,)).fetchone()[0]
     return render_template("book_detail.html", book=book, waiting=waiting)
-
-
-@app.get("/scan")
-@login_required
-def scan_books():
-    return render_template("scan.html")
-
-
-@app.post("/scan/find")
-@login_required
-def scan_find():
-    raw_code = request.form.get("code", "").strip()
-    book = None
-    with db() as conn:
-        # 1. Tr?ch xu?t ID n?u qu?t tr?ng URL (v? d?: http://.../books/view/3 ho?c /books/view/3)
-        match = re.search(r"/books/view/(\d+)", raw_code)
-        if match:
-            book_id = int(match.group(1))
-            book = conn.execute("SELECT id FROM books WHERE id=?", (book_id,)).fetchone()
-
-        # 2. T?m ch?nh x?c theo m? s?ch (code) (v? d?: S001)
-        if not book:
-            clean_code = raw_code.strip(" '\"\t\r\n")
-            book = conn.execute("SELECT id FROM books WHERE code=? COLLATE NOCASE", (clean_code,)).fetchone()
-
-        # 3. T?m theo ID s? nguy?n tr?c ti?p n?u ng??i d?ng nh?p s? ID
-        if not book and raw_code.isdigit():
-            book = conn.execute("SELECT id FROM books WHERE id=?", (int(raw_code),)).fetchone()
-
-    if not book:
-        flash(f"Kh?ng t?m th?y ?n ph?m t??ng ?ng v?i m?: {raw_code}", "error")
-        return redirect(url_for("scan_books"))
-    return redirect(url_for("book_detail", id=book["id"]))
