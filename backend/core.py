@@ -52,6 +52,7 @@ __all__ = [
 app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
 app.jinja_loader = FileSystemLoader(TEMPLATE_SEARCH_PATHS)
 app.secret_key = SECRET_KEY
+app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 
 @app.context_processor
