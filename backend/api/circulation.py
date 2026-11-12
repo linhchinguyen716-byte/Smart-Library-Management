@@ -98,17 +98,46 @@ def api_reservation_status(id):
         return fail("Trạng thái không hợp lệ.")
     with db() as conn:
         row = conn.execute(
-            "SELECT r.status,b.available FROM reservations r JOIN books b ON b.id=r.book_id WHERE r.id=?",
+            """SELECT r.reader_id, r.book_id, r.status, b.available, b.title
+               FROM reservations r JOIN books b ON b.id=r.book_id WHERE r.id=?""",
             (id,)
         ).fetchone()
         if not row:
             return fail("Không tìm thấy yêu cầu.", 404)
-        if status == "Hoàn tất" and row["status"] != "Đã thông báo":
-            return fail("Cần thông báo trước khi hoàn tất.")
-        if status == "Đã thông báo" and row["available"] < 1:
-            return fail("Sách chưa có sẵn.")
         if row["status"] in ("Hoàn tất", "Đã hủy"):
-            return fail("Yêu cầu đã xử lý.")
+            return fail("Yêu cầu đã được xử lý trước đó.")
+
+        if status == "Hoàn tất":
+            if row["available"] < 1:
+                return fail("Sách hiện không còn bản khả dụng nào để cho mượn.")
+            # 1. Trừ số lượng khả dụng
+            conn.execute("UPDATE books SET available = available - 1 WHERE id = ?", (row["book_id"],))
+
+            # 2. Tạo phiếu mượn
+            loan_code = "PM" + datetime.now().strftime("%Y%m%d%H%M%S%f")[-12:]
+            emp_id = session.get("employee_id") or 1
+            today_str = date.today().isoformat()
+            due_str = (date.today() + timedelta(days=14)).isoformat()
+
+            cursor = conn.execute("""
+                INSERT INTO loans(code, reader_id, employee_id, borrow_date, due_date, status)
+                VALUES(?, ?, ?, ?, ?, 'Đang mượn')
+            """, (loan_code, row["reader_id"], emp_id, today_str, due_str))
+            loan_id = cursor.lastrowid
+
+            # 3. Tạo chi tiết ấn phẩm
+            conn.execute("""
+                INSERT INTO loan_items(loan_id, book_id, quantity)
+                VALUES(?, ?, 1)
+            """, (loan_id, row["book_id"]))
+
+            # 4. Cập nhật trạng thái
+            conn.execute("UPDATE reservations SET status='Hoàn tất' WHERE id=?", (id,))
+            return success(message="Đã hoàn tất cho mượn và tạo phiếu mượn thành công (đã trừ 1 bản sách).")
+
+        if status == "Đã thông báo" and row["available"] < 1:
+            return fail("Sách chưa có sẵn trong kho để thông báo.")
+
         conn.execute("UPDATE reservations SET status=? WHERE id=?", (status, id))
     return success(message="Đã cập nhật đặt trước.")
 

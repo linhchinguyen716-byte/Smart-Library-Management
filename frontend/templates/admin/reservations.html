@@ -62,19 +62,32 @@
             <td>
               {% if r.status == 'Chờ xử lý' %}
               <div class="actions">
-                <form method="post" action="{{ url_for('reservation_status', id=r.id) }}">
-                  <input type="hidden" name="status" value="Đã thông báo">
-                  <button type="submit" class="btn primary btn-sm">Đã thông báo</button>
+                {% if r.available > 0 %}
+                <form method="post" action="{{ url_for('complete_reservation', id=r.id) }}">
+                  <button type="submit" class="btn primary btn-sm" title="Duyệt cho mượn ngay và trừ 1 bản sách">Duyệt cho mượn</button>
                 </form>
                 <form method="post" action="{{ url_for('reservation_status', id=r.id) }}">
+                  <input type="hidden" name="status" value="Đã thông báo">
+                  <button type="submit" class="btn secondary btn-sm" title="Thông báo cho độc giả tới nhận">Báo có sách</button>
+                </form>
+                {% endif %}
+                <form method="post" action="{{ url_for('reservation_status', id=r.id) }}">
                   <input type="hidden" name="status" value="Đã hủy">
-                  <button type="submit" class="btn danger btn-sm">Hủy</button>
+                  <button type="submit" class="btn danger btn-sm" title="Hủy yêu cầu">Hủy</button>
                 </form>
               </div>
               {% elif r.status == 'Đã thông báo' %}
-              <form method="post" action="{{ url_for('complete_reservation', id=r.id) }}">
-                <button type="submit" class="btn secondary btn-sm">✓ Hoàn tất</button>
-              </form>
+              <div class="actions">
+                {% if r.available > 0 %}
+                <form method="post" action="{{ url_for('complete_reservation', id=r.id) }}">
+                  <button type="submit" class="btn primary btn-sm" title="Hoàn tất cho mượn và trừ 1 bản sách">✓ Hoàn tất cho mượn</button>
+                </form>
+                {% endif %}
+                <form method="post" action="{{ url_for('reservation_status', id=r.id) }}">
+                  <input type="hidden" name="status" value="Đã hủy">
+                  <button type="submit" class="btn danger btn-sm" title="Hủy yêu cầu">Hủy</button>
+                </form>
+              </div>
               {% else %}
               <span class="mono" style="color: var(--ink-muted);">—</span>
               {% endif %}

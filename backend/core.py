@@ -5,8 +5,6 @@ import sqlite3
 import csv
 import io
 import os
-import qrcode
-from qrcode.image.pil import PilImage
 from datetime import date, datetime, timedelta
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -31,8 +29,6 @@ __all__ = [
     "csv",
     "io",
     "os",
-    "qrcode",
-    "PilImage",
     "date",
     "datetime",
     "timedelta",

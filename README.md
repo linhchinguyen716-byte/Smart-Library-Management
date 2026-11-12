@@ -116,7 +116,7 @@ npm run dev
 ## 4. Danh sách tính năng cốt lõi
 
 1. **Tra cứu & Tìm kiếm nâng cao:** Lọc theo mã sách, nhan đề, tác giả, nhà xuất bản, chuyên mục và tình trạng còn sách trong kho.
-2. **Định danh QR Code:** Tạo động mã QR cho từng đầu sách phục vụ in tem nhãn dán lưu trữ ấn phẩm.
+2. **Quản lý danh mục & Thông tin chi tiết:** Tra cứu hồ sơ ấn phẩm, quản lý mã định danh, phân loại chuyên mục và trạng thái khả dụng theo thời gian thực.
 3. **Quản lý Mượn / Trả & Gia hạn:** Lập phiếu mượn nhiều bản, trừ tồn kho tức thời, thu hồi sách hoàn kho và gia hạn thêm 7 ngày.
 4. **Hàng chờ Đặt trước (Reservations):** Tiếp nhận đặt chỗ khi sách tạm hết, theo dõi trạng thái `Chờ xử lý` → `Đã thông báo` → `Hoàn tất`.
 5. **Trung tâm Cảnh báo & Nhắc hạn:** Tự động lọc các phiếu quá hạn hoặc cận hạn trong 3 ngày, hỗ trợ soạn thảo email trực tiếp và ghi sổ lịch sử nhắc nhở.

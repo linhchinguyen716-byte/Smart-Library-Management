@@ -38,7 +38,10 @@ export function Reservations({ tell, setBusy }) {
             actions={(r) =>
               r.status === 'Chờ xử lý' ? (
                 <>
-                  <button className="mini success" title="Thông báo" onClick={() => change(r.id, 'Đã thông báo')}>
+                  <button className="mini success" title="Duyệt cho mượn" onClick={() => change(r.id, 'Hoàn tất')}>
+                    <Check size={15} />
+                  </button>
+                  <button className="mini secondary" title="Thông báo có sách" onClick={() => change(r.id, 'Đã thông báo')}>
                     <Bell size={15} />
                   </button>
                   <button className="mini danger" title="Hủy" onClick={() => change(r.id, 'Đã hủy')}>
@@ -46,9 +49,14 @@ export function Reservations({ tell, setBusy }) {
                   </button>
                 </>
               ) : r.status === 'Đã thông báo' ? (
-                <button className="mini success" onClick={() => change(r.id, 'Hoàn tất')}>
-                  <Check size={15} />
-                </button>
+                <>
+                  <button className="mini success" title="Hoàn tất cho mượn" onClick={() => change(r.id, 'Hoàn tất')}>
+                    <Check size={15} />
+                  </button>
+                  <button className="mini danger" title="Hủy" onClick={() => change(r.id, 'Đã hủy')}>
+                    <X size={15} />
+                  </button>
+                </>
               ) : null
             }
           />

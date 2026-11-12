@@ -3,7 +3,7 @@
 <header class="page-header">
   <div>
     <span class="page-kicker">Chi tiết ấn phẩm</span>
-    <h1>Thông tin sách &amp; nhãn định danh QR</h1>
+    <h1>Thông tin chi tiết ấn phẩm</h1>
   </div>
   <div class="actions">
     {% if session.get('employee_id') %}
@@ -11,9 +11,13 @@
     <a class="btn primary" href="{{ url_for('edit_book', id=book.id) }}">Chỉnh sửa hồ sơ</a>
     {% elif session.get('reader_id') %}
     <a class="btn secondary" href="{{ url_for('home') }}">← Về trang chủ</a>
-    {% if book.available == 0 %}
+    {% if book.available > 0 %}
     <form method="post" action="{{ url_for('user_reserve', book_id=book.id) }}" style="display:inline-block;">
-      <button type="submit" class="btn primary">Đặt trước sách</button>
+      <button type="submit" class="btn primary">Đăng ký mượn sách</button>
+    </form>
+    {% else %}
+    <form method="post" action="{{ url_for('user_reserve', book_id=book.id) }}" style="display:inline-block;">
+      <button type="submit" class="btn primary">Đặt trước khi có sách</button>
     </form>
     {% endif %}
     {% else %}
@@ -23,68 +27,63 @@
   </div>
 </header>
 
-<div class="book-info">
+<div style="max-width: 800px; margin: 0 auto;">
   <section class="panel">
     <div class="panel-header">
-      <h2>{{ book.title }}</h2>
-      <span class="code-cell">{{ book.code }}</span>
+      <div>
+        <h2 style="font-size: 18px; margin-bottom: 4px;">{{ book.title }}</h2>
+        <span class="muted" style="font-size: 13px;">Tác giả: {{ book.author }}</span>
+      </div>
+      <span class="code-cell" style="font-size: 14px;">{{ book.code }}</span>
     </div>
-    <dl class="spec-list">
+
+    <dl class="spec-list" style="margin-top: 20px;">
       <dt>Mã định danh</dt>
-      <dd class="mono">{{ book.code }}</dd>
+      <dd class="mono" style="font-weight: 600;">{{ book.code }}</dd>
+
+      <dt>Nhan đề ấn phẩm</dt>
+      <dd style="font-weight: 500;">{{ book.title }}</dd>
+
       <dt>Tác giả</dt>
       <dd>{{ book.author }}</dd>
+
       <dt>Nhà xuất bản</dt>
       <dd>{{ book.publisher or 'Chưa cập nhật' }}</dd>
-      <dt>Chuyên mục</dt>
+
+      <dt>Chuyên mục thể loại</dt>
       <dd>{{ book.category or 'Chưa phân loại' }}</dd>
+
       <dt>Năm xuất bản</dt>
       <dd class="mono">{{ book.year or '—' }}</dd>
-      <dt>Tình trạng sách</dt>
+
+      <dt>Số lượng sách</dt>
       <dd>
-        <span class="tag {% if book.available == 0 %}bad{% else %}good{% endif %}">{{ book.available }} / {{ book.quantity }} bản khả dụng</span>
+        <span class="tag {% if book.available == 0 %}bad{% else %}good{% endif %}" style="font-size: 13px;">
+          Còn khả dụng: {{ book.available }} / {{ book.quantity }} bản
+        </span>
       </dd>
+
       <dt>Hàng chờ đặt trước</dt>
-      <dd class="mono">{{ waiting }} yêu cầu đang chờ</dd>
+      <dd class="mono">
+        {% if waiting > 0 %}
+        <span style="color: var(--amber-dark); font-weight: 600;">{{ waiting }} yêu cầu đang chờ xử lý</span>
+        {% else %}
+        <span class="muted">Không có yêu cầu chờ</span>
+        {% endif %}
+      </dd>
     </dl>
+
+    <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+      <div class="muted" style="font-size: 13px;">
+        ID hệ thống: <code>#{{ book.id }}</code>
+      </div>
+      {% if session.get('employee_id') %}
+      <div class="actions">
+        <a class="btn secondary btn-sm" href="{{ url_for('loans') }}">Tạo phiếu mượn</a>
+        <a class="btn primary btn-sm" href="{{ url_for('edit_book', id=book.id) }}">Chỉnh sửa</a>
+      </div>
+      {% endif %}
+    </div>
   </section>
-
-  <aside class="qrprint">
-    <span class="page-kicker">Nhãn in QR ấn phẩm</span>
-    <h2 style="margin-bottom: 4px;">{{ book.title }}</h2>
-    <p class="muted" style="font-size: 13px; margin-bottom: 10px;">{{ book.author }}</p>
-    <div class="qr-frame">
-      <img id="qrImg" alt="QR {{ book.code }}" src="{{ url_for('book_qr', id=book.id) }}" width="210" height="210">
-    </div>
-    <div style="font-size: 13px; font-weight: 600; margin: 8px 0 4px;" id="qrLabel">Mã QR chứa liên kết hồ sơ ấn phẩm</div>
-    <p class="muted" style="font-size: 12px; margin-bottom: 14px;">Quét bằng camera điện thoại, webcam hoặc máy quét mã vạch USB để truy xuất nhanh.</p>
-    
-    <div class="actions" style="margin-bottom: 12px; justify-content: center;">
-      <button type="button" class="btn secondary btn-sm" id="btnToggleQr">Chuyển sang QR mã gốc ({{ book.code }})</button>
-    </div>
-    <button type="button" class="btn primary" style="width: 100%;" onclick="window.print()">In nhãn lưu trữ QR</button>
-  </aside>
 </div>
-
-<script>
-(function() {
-  const qrImg = document.getElementById('qrImg');
-  const btnToggle = document.getElementById('btnToggleQr');
-  const qrLabel = document.getElementById('qrLabel');
-  let isRaw = false;
-
-  btnToggle.addEventListener('click', function() {
-    isRaw = !isRaw;
-    if (isRaw) {
-      qrImg.src = "{{ url_for('book_qr', id=book.id) }}?raw=code";
-      qrLabel.textContent = "Mã QR chứa mã định danh: {{ book.code }}";
-      btnToggle.textContent = "Chuyển sang QR liên kết URL";
-    } else {
-      qrImg.src = "{{ url_for('book_qr', id=book.id) }}";
-      qrLabel.textContent = "Mã QR chứa liên kết hồ sơ ấn phẩm";
-      btnToggle.textContent = "Chuyển sang QR mã gốc ({{ book.code }})";
-    }
-  });
-})();
-</script>
 {% endblock %}

@@ -61,15 +61,50 @@ def reservation_status(id):
 @app.post("/reservations/<int:id>/complete")
 @login_required
 def complete_reservation(id):
-    conn=db()
-    row=conn.execute("SELECT * FROM reservations WHERE id=?", (id,)).fetchone()
-    if not row or row["status"] != "Đã thông báo":
-        flash("Chỉ hoàn tất yêu cầu đã thông báo.","error")
+    conn = db()
+    row = conn.execute("""
+        SELECT r.*, b.available, b.title, b.code AS book_code
+        FROM reservations r JOIN books b ON b.id=r.book_id
+        WHERE r.id=?
+    """, (id,)).fetchone()
+
+    if not row or row["status"] in ("Hoàn tất", "Đã hủy"):
+        flash("Yêu cầu không tồn tại hoặc đã được xử lý.", "error")
+    elif row["available"] < 1:
+        flash(f"Ấn phẩm '{row['title']}' hiện không còn bản khả dụng nào để cho mượn.", "error")
     else:
+        # 1. Trừ số lượng sách khả dụng trong kho
+        conn.execute("UPDATE books SET available = available - 1 WHERE id = ?", (row["book_id"],))
+
+        # 2. Tạo phiếu mượn sách chính thức
+        loan_code = "PM" + datetime.now().strftime("%Y%m%d%H%M%S%f")[-12:]
+        emp_id = session.get("employee_id")
+        if not emp_id:
+            emp = conn.execute("SELECT id FROM employees ORDER BY id LIMIT 1").fetchone()
+            emp_id = emp["id"] if emp else 1
+
+        today_str = date.today().isoformat()
+        due_str = (date.today() + timedelta(days=14)).isoformat()
+
+        conn.execute("""
+            INSERT INTO loans(code, reader_id, employee_id, borrow_date, due_date, status)
+            VALUES(?, ?, ?, ?, ?, 'Đang mượn')
+        """, (loan_code, row["reader_id"], emp_id, today_str, due_str))
+
+        loan_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+
+        # 3. Tạo chi tiết ấn phẩm mượn
+        conn.execute("""
+            INSERT INTO loan_items(loan_id, book_id, quantity)
+            VALUES(?, ?, 1)
+        """, (loan_id, row["book_id"]))
+
+        # 4. Đánh dấu yêu cầu đặt trước đã hoàn tất
         conn.execute("UPDATE reservations SET status='Hoàn tất' WHERE id=?", (id,))
-        log_action(conn,"Đặt trước",f"Hoàn tất yêu cầu #{id}")
+
+        log_action(conn, "Cho mượn", f"Hoàn tất cho mượn '{row['title']}' (Phiếu #{loan_code}) cho độc giả #{row['reader_id']} từ đơn đặt trước #{id}")
         conn.commit()
-        flash("Đã hoàn tất yêu cầu. Nếu độc giả mượn sách, hãy tạo phiếu mượn riêng.","success")
+        flash(f"Đã hoàn tất cho mượn! Đã tạo phiếu mượn #{loan_code} và trừ 1 bản sách khỏi kho.", "success")
     conn.close()
     return redirect(url_for("reservations"))
 

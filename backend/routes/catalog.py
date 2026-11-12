@@ -132,22 +132,6 @@ def edit_book(id):
     return render_template("edit_book.html",book=book,categories=cats)
 
 
-@app.get("/books/qr/<int:id>.png")
-def book_qr(id):
-    with db() as conn:
-        book = conn.execute("SELECT id, code FROM books WHERE id=?", (id,)).fetchone()
-    if not book:
-        abort(404)
-    if request.args.get("raw") == "code":
-        target = book["code"]
-    else:
-        target = url_for("book_detail", id=id, _external=True)
-    img = qrcode.make(target, image_factory=PilImage, box_size=8, border=3)
-    output = io.BytesIO()
-    img.save(output, format="PNG")
-    return Response(output.getvalue(), mimetype="image/png", headers={"Cache-Control":"no-store"})
-
-
 @app.get("/books/view/<int:id>")
 def book_detail(id):
     with db() as conn:
